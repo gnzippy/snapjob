@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SnapJob — Sign in</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#090f1e;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#111827;border:1px solid rgba(26,171,255,0.2);border-radius:20px;padding:40px 36px;max-width:400px;width:100%;text-align:center}
+.logo{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;margin-bottom:8px}
+.logo span{color:#1AABFF}
+.tagline{font-size:13px;color:#8899aa;margin-bottom:32px;line-height:1.6}
+.divider{font-size:12px;color:#8899aa;margin:20px 0;display:flex;align-items:center;gap:10px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08)}
+.google-btn{width:100%;background:#fff;color:#1a1a1a;border:none;border-radius:10px;padding:13px 20px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Sans',sans-serif;transition:opacity 0.2s}
+.google-btn:hover{opacity:0.92}
+.google-btn img{width:18px;height:18px}
+.email-form{text-align:left}
+.email-form input{width:100%;background:#162032;border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:11px 14px;color:#fff;font-size:14px;font-family:'DM Sans',sans-serif;margin-bottom:10px}
+.email-form input:focus{outline:none;border-color:#1AABFF}
+.email-form input::placeholder{color:#8899aa}
+.email-btn{width:100%;background:#1AABFF;color:#090f1e;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+.msg{font-size:13px;padding:10px 14px;border-radius:8px;margin-top:12px;display:none}
+.msg.ok{background:rgba(52,211,153,0.13);color:#34d399}
+.msg.err{background:rgba(248,113,113,0.13);color:#f87171}
+.footer{font-size:12px;color:#8899aa;margin-top:24px;line-height:1.6}
+.loading{display:none;font-size:13px;color:#8899aa;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Snap<span>Job</span></div>
+  <div class="tagline">Job management for trade businesses.<br>Sign in to your dashboard.</div>
+
+  <button class="google-btn" onclick="signInGoogle()">
+    <img src="https://www.google.com/favicon.ico" alt="Google">
+    Continue with Google
+  </button>
+
+  <div class="divider">or sign in with email</div>
+
+  <div class="email-form">
+    <input type="email" id="email" placeholder="Your email address" />
+    <input type="password" id="password" placeholder="Password" />
+    <button class="email-btn" onclick="signInEmail()">Sign in</button>
+    <div class="msg" id="msg"></div>
+    <div class="loading" id="loading">Signing in...</div>
+  </div>
+
+  <div class="footer">
+    Don't have an account? <a href="#" onclick="signUpEmail();return false" style="color:#1AABFF">Create one free</a><br>
+    <span style="font-size:11px">Free for 3 months · No credit card needed</span>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://jjxvcglxxelknlhngumd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZjZ2x4eGVsa25saG5ndW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjQ3ODAsImV4cCI6MjA5NTgwMDc4MH0.f91yxUb0_HRtOr0HQJtT2O9mK7VrBaYxZdndKU735qc';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Check if already logged in
+sb.auth.getSession().then(({ data }) => {
+  if (data.session) window.location.href = '/dashboard';
+});
+
+async function signInGoogle() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/dashboard' }
+  });
+  if (error) showMsg(error.message, 'err');
+}
+
+async function signInEmail() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) { showMsg('Please enter email and password.', 'err'); return; }
+  document.getElementById('loading').style.display = 'block';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  document.getElementById('loading').style.display = 'none';
+  if (error) { showMsg(error.message, 'err'); return; }
+  window.location.href = '/dashboard';
+}
+
+async function signUpEmail() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) { showMsg('Enter your email and a password to create an account.', 'err'); return; }
+  document.getElementById('loading').style.display = 'block';
+  const { error } = await sb.auth.signUp({ email, password });
+  document.getElementById('loading').style.display = 'none';
+  if (error) { showMsg(error.message, 'err'); return; }
+  showMsg('Account created! Check your email to confirm, then sign in.', 'ok');
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg ' + type;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
