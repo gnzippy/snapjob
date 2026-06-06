@@ -779,18 +779,57 @@ async function assignJob(){
   const techId=sel.dataset.techId||technicians.find(t=>t.name===sel.querySelector('.tec-n')?.textContent)?.id;
   const tech=technicians.find(t=>t.id===techId);
   const btn=document.getElementById('assign-btn');
-  btn.textContent='Sending WhatsApp...';btn.disabled=true;
+  btn.textContent='Assigning...';btn.disabled=true;
+
+  // Save to Supabase
   await sb.from('jobs').update({technician_id:techId,status:'assigned'}).eq('id',currentJob.id);
+
   const cust=currentJob.customers;
-  const msg=`🔧 NEW JOB\n\n👤 Customer: ${cust?.name||'—'}\n📱 Phone: ${cust?.phone||'—'}\n📍 Address: ${currentJob.address||'—'}\n🔧 Job: ${currentJob.description||currentJob.service_type||'—'}\n\nReply 1 to confirm.`;
-  const notifyRes=await fetch('/api/notify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:tech?.phone,message:msg})}).catch(()=>null);
-  if(notifyRes&&notifyRes.ok){
-    btn.textContent='✓ WhatsApp sent to '+tech?.name;btn.style.background='#0d3a20';btn.style.color='var(--emerald)';
-    showToast('Job assigned & WhatsApp sent!');
-  }else{
-    btn.textContent='✓ Assigned (WhatsApp pending — check Settings)';btn.style.background='#2a1a00';btn.style.color='var(--amber)';
-    showToast('Job assigned. WhatsApp not sent — check webhook in Settings.');
+  const msg='🔧 NEW JOB ASSIGNED\n\n👤 Customer: '+(cust?.name||'—')+'\n📱 Phone: '+(cust?.phone||'—')+'\n📍 Address: '+(currentJob.address||'—')+'\n🔧 Job: '+(currentJob.description||currentJob.service_type||'—')+'\n\nReply 1 to confirm.';
+
+  // Call WhatsApp directly from browser
+  const WA_TOKEN = 'EAAVt7EbgD6oBRhNI5nAbAz6ZCJEOH4HSIEBy7Umgs1eFfdXcu7GZAbLAbGCeOsSq7wbpnh3y5u25ifOL6LNqAWlSEcZAg5ylWirK50SV2k0J1cBEiAUXDTUo9v7qxkdMOmUmN6tcj9vdOqPFWwOCf24lOUfcNVzoh8abKn4d1aXIrQPYK7ZAVfw82qmvdoFykKaJGy5OJO5GQi7p6u43oUCI4RXlA2a0u9iZCcJL2tiees2oV6ZAmF2d9lMWI4XkefYRh7WvcL3YhfQkk8ZBt8ealZBPbtDvTrFR';
+  const WA_PHONE_ID = '1162831236911975';
+
+  // Format phone — remove + and spaces
+  const toPhone = (tech?.phone||'').replace(/[^0-9]/g,'');
+
+  try {
+    const waRes = await fetch('https://graph.facebook.com/v18.0/'+WA_PHONE_ID+'/messages', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer '+WA_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: toPhone,
+        type: 'text',
+        text: { body: msg }
+      })
+    });
+    const waData = await waRes.json();
+    console.log('WhatsApp response:', JSON.stringify(waData));
+
+    if(waRes.ok && waData.messages){
+      btn.textContent='✓ WhatsApp sent to '+tech?.name;
+      btn.style.background='#0d3a20';btn.style.color='var(--emerald)';
+      showToast('Job assigned & WhatsApp sent!');
+    } else {
+      const errMsg = waData.error?.message || JSON.stringify(waData);
+      console.error('WhatsApp error:', errMsg);
+      btn.textContent='✓ Assigned — WA error: '+errMsg.substring(0,40);
+      btn.style.background='#2a1a00';btn.style.color='var(--amber)';
+      showToast('Assigned. WA error: '+errMsg.substring(0,60));
+    }
+  } catch(err) {
+    console.error('Fetch error:', err);
+    btn.textContent='✓ Assigned — network error';
+    btn.style.background='#2a1a00';btn.style.color='var(--amber)';
+    showToast('Assigned. Network error: '+err.message);
   }
+
+  // Also notify via Make webhook
   if(currentBusiness?.make_webhook_url){
     await fetch(currentBusiness.make_webhook_url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'job_assigned',customer:cust?.name,phone:cust?.phone,address:currentJob.address,service:currentJob.service_type,technician:tech?.name})}).catch(()=>{});
   }
