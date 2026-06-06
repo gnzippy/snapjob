@@ -2,9 +2,5 @@
   "rewrites": [
     { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/login", "destination": "/login.html" }
-  ],
-  "functions": {
-    "api/whatsapp.js": { "memory": 256 },
-    "api/notify.js": { "memory": 256 }
-  }
+  ]
 }
