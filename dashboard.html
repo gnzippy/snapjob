@@ -451,7 +451,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
     </div>
     <div class="fg-row">
       <div class="fg"><label>Customer name</label><input class="fi2" id="j-name" placeholder="e.g. David Tan"></div>
-      <div class="fg"><label>Phone number</label><input class="fi2" id="j-phone" placeholder="+65 9xxx xxxx"></div>
+      <div class="fg"><label>Phone number (include country code)</label><input class="fi2" id="j-phone" placeholder="e.g. +65 9xxx xxxx or +60 1x xxx xxxx" oninput="validateJobPhone(this)"></div>
     </div>
     <div class="fg"><label>Address (include unit number)</label><input class="fi2" id="j-addr" placeholder="e.g. #08-12, Tampines St 21, S521021"></div>
     <div class="fg"><label>What needs to be done?</label><input class="fi2" id="j-desc" placeholder="e.g. Washing machine not spinning, Aircon leaking, Tap leaking..."></div>
@@ -472,7 +472,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
     <h3>Add technician</h3>
     <p>Enter their name and number. SnapJob sends them a WhatsApp introduction automatically — they don't need to do anything else.</p>
     <div class="fg"><label>Full name</label><input class="fi2" id="t-name" placeholder="e.g. Ahmad Malik"></div>
-    <div class="fg"><label>WhatsApp / phone number</label><input class="fi2" id="t-phone" placeholder="+65 or +60 or +62..."></div>
+    <div class="fg"><label>WhatsApp / phone number (include country code)</label><input class="fi2" id="t-phone" placeholder="e.g. +65 9xxx xxxx or +60 1x xxx xxxx" oninput="validatePhone(this)">
+    <div id="phone-hint" style="font-size:11px;margin-top:4px;display:none"></div></div>
     <div class="fg"><label>Notify this technician via</label>
       <div class="src-btns">
         <button class="src-btn on" onclick="setSrc2(this,'whatsapp')">💬 WhatsApp</button>
@@ -620,7 +621,7 @@ async function loadTechnicians(){
   const colors=['#1AABFF','#a78bfa','#34d399','#f59e0b','#f87171'];
   technicians.forEach((t,i)=>{
     const div=document.createElement('div');div.className='tc';
-    div.innerHTML=`<div class="tc-top"><div class="tc-av" style="background:${colors[i%colors.length]}">${t.name.substring(0,2).toUpperCase()}</div><div><div class="tc-n">${t.name}</div><div class="tc-p">${t.phone} · ${t.notify_via||'WhatsApp'}</div></div></div><div class="tc-bot"><span class="badge ba">Active</span><span style="font-size:12px;color:var(--green);font-weight:600;cursor:pointer" onclick="window.open('https://wa.me/${t.phone.replace(/[^0-9]/g,'')}')">💬 WhatsApp</span></div>`;
+    div.innerHTML=`<div class="tc-top"><div class="tc-av" style="background:${colors[i%colors.length]}">${t.name.substring(0,2).toUpperCase()}</div><div><div class="tc-n">${t.name}</div><div class="tc-p">${t.phone} · ${t.notify_via||'WhatsApp'}</div></div></div><div class="tc-bot"><span class="badge ba">Active</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:12px;color:var(--blue);font-weight:600;cursor:pointer" onclick="editTech('${t.id}','${t.name}','${t.phone}','${t.notify_via||'whatsapp'}')">✏️ Edit</span><span style="font-size:12px;color:var(--red);font-weight:600;cursor:pointer" onclick="deleteTech('${t.id}','${t.name}')">🗑️ Delete</span></div></div>`;
     grid.appendChild(div);
   });
   const addDiv=document.createElement('div');addDiv.className='add-tc';
@@ -791,8 +792,16 @@ async function assignJob(){
   const WA_TOKEN = 'EAAVt7EbgD6oBRhNI5nAbAz6ZCJEOH4HSIEBy7Umgs1eFfdXcu7GZAbLAbGCeOsSq7wbpnh3y5u25ifOL6LNqAWlSEcZAg5ylWirK50SV2k0J1cBEiAUXDTUo9v7qxkdMOmUmN6tcj9vdOqPFWwOCf24lOUfcNVzoh8abKn4d1aXIrQPYK7ZAVfw82qmvdoFykKaJGy5OJO5GQi7p6u43oUCI4RXlA2a0u9iZCcJL2tiees2oV6ZAmF2d9lMWI4XkefYRh7WvcL3YhfQkk8ZBt8ealZBPbtDvTrFR';
   const WA_PHONE_ID = '1162831236911975';
 
-  // Format phone — remove + and spaces
-  const toPhone = (tech?.phone||'').replace(/[^0-9]/g,'');
+  // Format phone — keep country code, remove non-digits
+  const rawPhone = (tech?.phone||'').trim();
+  if (!rawPhone) { showToast('Technician has no phone number'); btn.disabled=false; btn.textContent='✓ Assign & notify via WhatsApp'; return; }
+  // Validate country code present
+  if (!rawPhone.startsWith('+')) {
+    showToast('Technician phone needs country code e.g. +65 or +60. Edit technician to fix.');
+    btn.disabled=false; btn.textContent='✓ Assign & notify via WhatsApp';
+    await loadJobs(); return;
+  }
+  const toPhone = rawPhone.replace(/[^0-9]/g,'');
 
   try {
     const waRes = await fetch('https://graph.facebook.com/v18.0/'+WA_PHONE_ID+'/messages', {
@@ -1026,6 +1035,69 @@ function timeSince(dateStr){
 }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 async function signOut(){await sb.auth.signOut();window.location.href='/login.html';}
+
+function editTech(id, name, phone, notify) {
+  document.getElementById('t-name').value = name;
+  document.getElementById('t-phone').value = phone;
+  document.getElementById('t-notify').value = notify;
+  // Set notify button
+  document.querySelectorAll('#mo-tech .src-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#mo-tech .src-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(notify)) b.classList.add('on');
+  });
+  // Change save button to update
+  const sav = document.querySelector('#mo-tech .sav');
+  sav.textContent = 'Update technician';
+  sav.onclick = async () => {
+    const newName = document.getElementById('t-name').value.trim();
+    const newPhone = document.getElementById('t-phone').value.trim();
+    const newNotify = document.getElementById('t-notify').value;
+    if (!newName || !newPhone) { showToast('Please enter name and phone'); return; }
+    if (!newPhone.startsWith('+')) { showToast('Phone needs country code e.g. +65'); return; }
+    await sb.from('technicians').update({ name: newName, phone: newPhone, notify_via: newNotify }).eq('id', id);
+    closeMoTech();
+    await loadTechnicians();
+    showToast(newName + ' updated!');
+    // Reset save button
+    sav.textContent = 'Add technician';
+    sav.onclick = saveTech;
+  };
+  openAddTech();
+}
+
+async function deleteTech(id, name) {
+  if (!confirm('Remove ' + name + ' from your team?')) return;
+  await sb.from('technicians').delete().eq('id', id);
+  await loadTechnicians();
+  showToast(name + ' removed.');
+}
+
+function validatePhone(input) {
+  const hint = document.getElementById('phone-hint');
+  const val = input.value.trim();
+  if (!val) { hint.style.display='none'; return; }
+  if (!val.startsWith('+')) {
+    hint.textContent = '⚠️ Missing country code — add + before the number (e.g. +65, +60, +62, +66)';
+    hint.style.color = 'var(--amber)';
+    hint.style.display = 'block';
+  } else {
+    hint.textContent = '✓ Looks good';
+    hint.style.color = 'var(--emerald)';
+    hint.style.display = 'block';
+  }
+}
+
+// Also validate customer phone in new job modal
+function validateJobPhone(input) {
+  const val = input.value.trim();
+  if (val && !val.startsWith('+')) {
+    input.style.borderColor = 'var(--amber)';
+    input.title = 'Include country code e.g. +65';
+  } else {
+    input.style.borderColor = '';
+    input.title = '';
+  }
+}
 
 init();
 </script>
