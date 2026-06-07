@@ -241,9 +241,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
     </div>
     <div class="kb-bar">
       <h2>All jobs</h2>
-      <button class="btn btn-b btn-sm" onclick="openMo()">+ New job</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o btn-sm" onclick="bulkArchive()" style="color:var(--grey);font-size:11px">🗄️ Archive all Done & Paid</button>
+        <button class="btn btn-b btn-sm" onclick="openMo()">+ New job</button>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;height:calc(100vh - 310px)">
+    <div style="overflow-x:auto;height:100%">
     <div class="kb" style="height:100%">
       <div class="col cn" id="col-new" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'new',this)"><div class="ch"><span class="ct">New</span><span class="cc" id="cnt-new">0</span></div><div class="cb" id="cb-new"><div class="empty-col">No new jobs</div></div></div>
       <div class="col ca" id="col-assigned" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'assigned',this)"><div class="ch"><span class="ct">Assigned</span><span class="cc" id="cnt-assigned">0</span></div><div class="cb" id="cb-assigned"><div class="empty-col">None assigned</div></div></div>
@@ -253,6 +257,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
     </div>
     </div>
 
+    </div>
     <!-- ACTIVITY FEED -->
     <div style="background:var(--card);border:1px solid var(--brd);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
       <div style="padding:12px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
@@ -1130,12 +1135,31 @@ function editTech(id, name, phone, notify) {
 }
 
 async function deleteTech(id, name) {
-  if (!confirm('Remove ' + name + ' from your team?')) return;
+  if (!confirm('Remove ' + name + ' from your team? Their jobs will remain but become unassigned.')) return;
+  // First remove technician reference from all their jobs
+  await sb.from('jobs').update({ technician_id: null }).eq('technician_id', id);
+  // Then delete the technician
   const { error } = await sb.from('technicians').delete().eq('id', id);
   if (error) { showToast('Error: ' + error.message); return; }
   technicians = technicians.filter(t => t.id !== id);
   await loadTechnicians();
-  showToast(name + ' removed from your team.');
+  await loadJobs();
+  showToast(name + ' removed. Their jobs are now unassigned.');
+}
+
+async function bulkArchive() {
+  if (!currentBusiness) return;
+  const { data: jobs } = await sb.from('jobs')
+    .select('id')
+    .eq('business_id', currentBusiness.id)
+    .in('status', ['done', 'paid']);
+  if (!jobs || jobs.length === 0) { showToast('No Done or Paid jobs to archive'); return; }
+  if (!confirm('Archive all ' + jobs.length + ' Done and Paid jobs? They will be saved in Customers & CRM.')) return;
+  const ids = jobs.map(j => j.id);
+  await sb.from('jobs').update({ status: 'archived' }).in('id', ids);
+  await loadJobs();
+  await loadActivityFeed();
+  showToast(jobs.length + ' jobs archived. Find them in Customers tab.');
 }
 
 async function archiveJob() {
