@@ -212,6 +212,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
     <button class="ni" onclick="show('technicians',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Technicians</button>
     <button class="ni" onclick="show('invoices',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Invoices</button>
     <div class="ns">Business</div>
+    <button class="ni" onclick="show('customers',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="21" x2="23" y2="19"/><line x1="21" y1="17" x2="21" y2="21"/></svg>Customers</button>
     <button class="ni" onclick="show('settings',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M5 5a10 10 0 0 0 0 14.14"/></svg>Settings</button>
   </div>
   <div class="sb-foot">
@@ -366,6 +367,33 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
     </div>
   </div>
 
+  <!-- CUSTOMERS / CRM -->
+  <div id="sc-customers" class="sc">
+    <div class="guide">👥 All your past customers in one place. Click any customer to see their job history and re-engage them. Archived jobs appear here too.</div>
+    <div class="ph">
+      <div><div class="pt">Customers</div><div class="ps2">Past customers, job history, and archived jobs.</div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <input class="fi2" id="cust-search" placeholder="Search by name or phone..." oninput="filterCustomers()" style="max-width:280px">
+    </div>
+    <div class="itbl">
+      <table>
+        <thead><tr><th>Customer</th><th>Phone</th><th>Total jobs</th><th>Last job</th><th>Total spent</th><th>Action</th></tr></thead>
+        <tbody id="cust-tbody"><tr><td colspan="6" style="text-align:center;color:var(--grey);padding:20px">Loading customers...</td></tr></tbody>
+      </table>
+    </div>
+    <div style="margin-top:24px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px">🗄️ Archived jobs</div>
+      <div class="guide">Jobs you archived are stored here. You can restore them or view the history.</div>
+      <div class="itbl" style="margin-top:10px">
+        <table>
+          <thead><tr><th>Customer</th><th>Description</th><th>Archived date</th><th>Action</th></tr></thead>
+          <tbody id="archive-tbody"><tr><td colspan="4" style="text-align:center;color:var(--grey);padding:20px">No archived jobs</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- SETTINGS -->
   <div id="sc-settings" class="sc">
     <div class="guide">⚙️ Complete your business profile so it appears correctly on all invoices. Upload your logo and PayNow QR once — they appear on every invoice automatically.</div>
@@ -399,15 +427,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
         <div id="upload-status" style="font-size:12px;margin-top:6px;display:none"></div>
       </div>
       <div class="set-card">
-        <h3>WhatsApp notifications</h3>
-        <p>When you assign a job, your technician gets a WhatsApp automatically via your Make scenario.</p>
-        <div class="fg"><label>Make webhook URL</label><input class="fi2" id="s-webhook" placeholder="https://hook.eu1.make.com/..."></div>
-        <div style="background:var(--card2);border-radius:8px;padding:12px;font-size:12px;color:var(--grey);line-height:1.8;margin-bottom:12px">
-          <strong style="color:var(--white);display:block;margin-bottom:6px">How to get your Make webhook URL:</strong>
-          1. Go to <strong style="color:var(--blue)">make.com</strong> → open your scenario<br>
-          2. Click the <strong style="color:var(--white)">Webhooks</strong> module (first bubble)<br>
-          3. Click <strong style="color:var(--white)">Copy address to clipboard</strong><br>
-          4. Paste it above and click Save
+        <h3>WhatsApp notifications <span style="font-size:11px;color:var(--grey);font-weight:400">(optional)</span></h3>
+        <p>Optional — only needed if you use Make.com for additional automations like logging to Google Sheets. WhatsApp job notifications to technicians work without this.</p>
+        <div class="fg"><label>Make webhook URL <span style="color:var(--grey);font-weight:400;text-transform:none">(leave blank if not using)</span></label><input class="fi2" id="s-webhook" placeholder="https://hook.eu1.make.com/... (optional)"></div>
+        <div style="background:var(--bd);border:1px solid var(--bb);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--grey);line-height:1.7;margin-bottom:12px">
+          ✅ <strong style="color:var(--white)">For demos — leave this blank.</strong> WhatsApp notifications to technicians fire directly without Make.<br><br>
+          Only add this if you want jobs logged to Google Sheets or Telegram via Make.
         </div>
         <button class="sav-btn" onclick="saveBusiness()">Save</button>
       </div>
@@ -431,6 +456,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
   <div class="dpf" id="dp-foot" style="display:none">
     <button class="dpbtn pri" id="assign-btn" onclick="assignJob()">✓ Assign & notify via WhatsApp</button>
     <button class="dpbtn sec" onclick="createInvoiceFromJob()">🧾 Create invoice for this job</button>
+    <button class="dpbtn sec" style="color:var(--red);border-color:rgba(248,113,113,0.3)" onclick="archiveJob()">🗄️ Archive job</button>
   </div>
 </div>
 
@@ -538,7 +564,7 @@ async function loadBusiness(){
 
 async function loadJobs(){
   if(!currentBusiness)return;
-  const{data:jobs}=await sb.from('jobs').select('*,customers(*),technicians(*)').eq('business_id',currentBusiness.id).order('created_at',{ascending:false});
+  const{data:jobs}=await sb.from('jobs').select('*,customers(*),technicians(*)').eq('business_id',currentBusiness.id).neq('status','archived').order('created_at',{ascending:false});
   if(!jobs)return;
   const statuses=['new','assigned','in_progress','done','paid'];
   statuses.forEach(s=>{
@@ -994,7 +1020,7 @@ async function uploadImage(file,type){
 }
 
 // UI helpers
-const titles={jobs:'Job Board',technicians:'Technicians',invoices:'Invoices','create-invoice':'Create Invoice',settings:'Settings'};
+const titles={jobs:'Job Board',technicians:'Technicians',invoices:'Invoices','create-invoice':'Create Invoice',customers:'Customers & CRM',settings:'Settings'};
 function show(id,btn){
   document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
@@ -1002,6 +1028,7 @@ function show(id,btn){
   if(btn)btn.classList.add('on');
   document.getElementById('tb-title').textContent=titles[id]||id;
   closeDp();
+  if(id==='customers') loadCustomers();
 }
 function openDp(){document.getElementById('dp').classList.add('open');}
 function closeDp(){document.getElementById('dp').classList.remove('open');}
@@ -1067,9 +1094,84 @@ function editTech(id, name, phone, notify) {
 
 async function deleteTech(id, name) {
   if (!confirm('Remove ' + name + ' from your team?')) return;
-  await sb.from('technicians').delete().eq('id', id);
+  const { error } = await sb.from('technicians').delete().eq('id', id);
+  if (error) { showToast('Error: ' + error.message); return; }
+  technicians = technicians.filter(t => t.id !== id);
   await loadTechnicians();
-  showToast(name + ' removed.');
+  showToast(name + ' removed from your team.');
+}
+
+async function archiveJob() {
+  if (!currentJob) return;
+  if (!confirm('Archive this job? It will be saved in Customers & CRM.')) return;
+  await sb.from('jobs').update({ status: 'archived' }).eq('id', currentJob.id);
+  closeDp();
+  await loadJobs();
+  showToast('Job archived. Find it in Customers tab.');
+}
+
+let allCustomers = [];
+async function loadCustomers() {
+  if (!currentBusiness) return;
+  // Load all customers with job counts
+  const { data: custs } = await sb.from('customers').select('*, jobs(*)').eq('business_id', currentBusiness.id);
+  allCustomers = custs || [];
+  renderCustomers(allCustomers);
+
+  // Load archived jobs
+  const { data: archived } = await sb.from('jobs').select('*, customers(name,phone)').eq('business_id', currentBusiness.id).eq('status', 'archived').order('updated_at', { ascending: false });
+  const archTbody = document.getElementById('archive-tbody');
+  if (!archived || archived.length === 0) {
+    archTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--grey);padding:20px">No archived jobs</td></tr>';
+  } else {
+    archTbody.innerHTML = archived.map(j => `<tr>
+      <td style="font-weight:600">${j.customers?.name||'—'}</td>
+      <td style="color:var(--grey)">${j.description||j.service_type||'—'}</td>
+      <td style="color:var(--grey);font-size:12px">${new Date(j.updated_at).toLocaleDateString('en-SG')}</td>
+      <td><span class="ia" onclick="restoreJob('${j.id}')">Restore</span></td>
+    </tr>`).join('');
+  }
+}
+
+function renderCustomers(custs) {
+  const tbody = document.getElementById('cust-tbody');
+  if (!custs || custs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--grey);padding:20px">No customers yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = custs.map(cust => {
+    const jobs = (cust.jobs || []).filter(j => j.status !== 'archived');
+    const lastJob = jobs.length > 0 ? new Date(Math.max(...jobs.map(j => new Date(j.created_at)))).toLocaleDateString('en-SG') : '—';
+    return `<tr>
+      <td style="font-weight:600">${cust.name||'—'}</td>
+      <td style="color:var(--grey)">${cust.phone||'—'}</td>
+      <td style="text-align:center">${jobs.length}</td>
+      <td style="color:var(--grey);font-size:12px">${lastJob}</td>
+      <td style="font-weight:600;color:var(--emerald)">—</td>
+      <td><span class="ia" onclick="newJobForCustomer('${cust.id}','${cust.name}','${cust.phone||''}','${cust.address||''}')">+ New job</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterCustomers() {
+  const search = (document.getElementById('cust-search')?.value || '').toLowerCase();
+  const filtered = allCustomers.filter(c => (c.name||'').toLowerCase().includes(search) || (c.phone||'').includes(search));
+  renderCustomers(filtered);
+}
+
+function newJobForCustomer(custId, name, phone, addr) {
+  document.getElementById('j-name').value = name;
+  document.getElementById('j-phone').value = phone;
+  document.getElementById('j-addr').value = addr;
+  show('jobs', document.querySelectorAll('.ni')[0]);
+  openMo();
+}
+
+async function restoreJob(id) {
+  await sb.from('jobs').update({ status: 'new' }).eq('id', id);
+  await loadCustomers();
+  await loadJobs();
+  showToast('Job restored to New column.');
 }
 
 function validatePhone(input) {
