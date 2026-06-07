@@ -138,10 +138,33 @@ export default async function handler(req, res) {
         return res.status(200).send('OK');
       }
 
-      // If customer says "accepted" or "1"
-      if (lower === 'accepted' || lower === '1' || lower.includes('accept')) {
+      // Technician replies 1 = ACCEPT
+      if (lower === '1' || lower === 'accepted' || lower.includes('accept')) {
         await sb.from('jobs').update({ status: 'in_progress' }).eq('id', openJob.id);
-        await sendWhatsApp(from, `✅ Got it! Job confirmed. See you at ${openJob.address || 'the location'}.`);
+        await sendWhatsApp(from, `✅ Got it! Job accepted. Customer: ${openJob.customers?.name || 'Unknown'} at ${openJob.address || 'the location'}. Safe travels!`);
+        
+        // Notify owner if they have a number
+        if (business.wa_number) {
+          const ownerPhone = business.wa_number.replace(/[^0-9]/g, '');
+          await sendWhatsApp(ownerPhone, `✅ Job accepted by technician\n\n👤 Customer: ${openJob.customers?.name || '—'}\n📍 ${openJob.address || '—'}\n\nStatus updated to In Progress.`);
+        }
+        return res.status(200).send('OK');
+      }
+
+      // Technician replies 2 = DECLINE
+      if (lower === '2' || lower === 'declined' || lower.includes('decline') || lower.includes('cannot') || lower.includes('cant') || lower.includes("can't")) {
+        await sb.from('jobs').update({ 
+          status: 'new', 
+          technician_id: null,
+          notes: 'Declined by technician at ' + new Date().toISOString()
+        }).eq('id', openJob.id);
+        await sendWhatsApp(from, `Understood. The job has been returned to the owner for reassignment. Thank you for letting us know.`);
+        
+        // Notify owner
+        if (business.wa_number) {
+          const ownerPhone = business.wa_number.replace(/[^0-9]/g, '');
+          await sendWhatsApp(ownerPhone, `⚠️ Job DECLINED by technician\n\n👤 Customer: ${openJob.customers?.name || '—'}\n📍 ${openJob.address || '—'}\n\nJob returned to New — please reassign.`);
+        }
         return res.status(200).send('OK');
       }
 
