@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SnapJob — WhatsApp Job Management for Trade Businesses</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#090f1e;--navy2:#111827;--blue:#1AABFF;--bd:rgba(26,171,255,0.12);--bb:rgba(26,171,255,0.25);
+  --white:#fff;--grey:#8899aa;--card:#111c2e;--brd:rgba(255,255,255,0.07);
+  --green:#25D366;--amber:#f59e0b;--emerald:#34d399
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(9,15,30,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd)}
+.nav-logo{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--white)}
+.nav-logo span{color:var(--blue)}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-links a{font-size:13px;color:var(--grey);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta{background:var(--blue);color:var(--navy);font-size:13px;font-weight:700;padding:9px 20px;border-radius:8px;text-decoration:none;transition:opacity .2s}
+.nav-cta:hover{opacity:.9}
+@media(max-width:600px){.nav-links{display:none}}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 24px 60px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 20%,rgba(26,171,255,0.1) 0%,transparent 70%)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,171,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(26,171,255,0.03) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%)}
+.pill{display:inline-flex;align-items:center;gap:7px;background:var(--bd);border:1px solid var(--bb);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--blue);margin-bottom:22px}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-family:'Syne',sans-serif;font-size:clamp(34px,7vw,68px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:18px;max-width:820px}
+h1 span{color:var(--blue)}
+.hero-sub{font-size:clamp(15px,2vw,18px);color:var(--grey);line-height:1.7;max-width:520px;margin:0 auto 32px}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.btn-pri{background:var(--blue);color:var(--navy);font-size:15px;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .2s,opacity .2s}
+.btn-pri:hover{transform:translateY(-1px);opacity:.92}
+.btn-sec{background:transparent;color:var(--white);font-size:15px;font-weight:600;padding:14px 28px;border-radius:10px;text-decoration:none;border:1px solid rgba(255,255,255,.15);cursor:pointer;transition:border-color .2s}
+.btn-sec:hover{border-color:rgba(255,255,255,.35)}
+
+/* PROOF BAR */
+.proof-bar{display:flex;gap:28px;align-items:center;justify-content:center;flex-wrap:wrap;padding:14px 24px;background:rgba(255,255,255,.02);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)}
+.proof-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--grey)}
+.proof-item svg{color:var(--blue);flex-shrink:0}
+
+/* WA MOCK */
+.wa-mock{background:#1a2535;border-radius:20px;padding:14px;border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 60px rgba(0,0,0,.5);max-width:300px;margin:0 auto}
+.wa-head{background:#075e54;border-radius:10px 10px 0 0;padding:10px 12px;display:flex;align-items:center;gap:8px;margin:-14px -14px 0}
+.wa-av{width:32px;height:32px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.wa-nm{font-size:13px;font-weight:600}
+.wa-st{font-size:10px;color:rgba(255,255,255,.6)}
+.wa-body{padding:12px 0 6px}
+.wa-msg{margin-bottom:8px}
+.wa-in{display:inline-block;background:#1e2d3d;padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.5;color:#e8eaed;border-bottom-left-radius:3px;max-width:85%}
+.wa-out{display:block;background:#005c4b;padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.5;color:#fff;border-bottom-right-radius:3px;max-width:85%;margin-left:auto}
+.wa-time{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px}
+.wa-divider{text-align:center;font-size:10px;color:var(--grey);margin:6px 0;background:rgba(255,255,255,.04);border-radius:5px;padding:3px 6px}
+.typing{display:flex;gap:4px;align-items:center;padding:8px 11px;background:#1e2d3d;border-radius:10px;width:fit-content}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--grey);animation:typ 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes typ{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.job-pop{position:absolute;right:-16px;top:40px;background:var(--card);border:1px solid var(--bb);border-radius:12px;padding:12px;width:160px;box-shadow:0 16px 32px rgba(0,0,0,.5)}
+.jp-label{font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.jp-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);animation:blink 1.5s infinite}
+.jp-name{font-size:12px;font-weight:600;margin-bottom:3px}
+.jp-issue{font-size:11px;color:var(--grey);margin-bottom:7px}
+.jp-btn{background:var(--blue);color:var(--navy);font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px}
+
+/* SECTIONS */
+section{padding:80px 24px}
+.inner{max-width:1100px;margin:0 auto}
+.tag{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.h2{font-family:'Syne',sans-serif;font-size:clamp(26px,4vw,40px);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:14px}
+.sub{font-size:16px;color:var(--grey);line-height:1.7;max-width:540px}
+
+/* WHO */
+.trades{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:36px}
+.trade{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:18px;text-align:center;transition:all .2s}
+.trade:hover{border-color:var(--bb);transform:translateY(-2px)}
+.trade-icon{font-size:28px;margin-bottom:8px}
+.trade-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.trade-desc{font-size:11px;color:var(--grey)}
+
+/* HOW IT WORKS */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:40px}
+.step{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:22px;position:relative;overflow:hidden;transition:border-color .2s}
+.step:hover{border-color:var(--bb)}
+.step-num{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:rgba(26,171,255,.07);position:absolute;top:10px;right:14px;line-height:1}
+.step-icon{width:40px;height:40px;background:var(--bd);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:20px}
+.step-title{font-size:14px;font-weight:700;margin-bottom:7px}
+.step-desc{font-size:12px;color:var(--grey);line-height:1.6}
+
+/* GUIDE */
+.guide-steps{display:flex;flex-direction:column;gap:0;margin-top:40px;max-width:620px}
+.gs{display:flex;gap:16px;align-items:flex-start;padding:20px 0;border-bottom:1px solid var(--brd)}
+.gs:last-child{border-bottom:none}
+.gs-num{width:36px;height:36px;border-radius:50%;background:var(--blue);color:var(--navy);font-family:'Syne',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.gs-title{font-size:15px;font-weight:700;margin-bottom:5px}
+.gs-desc{font-size:13px;color:var(--grey);line-height:1.6}
+.gs-time{font-size:11px;color:var(--blue);font-weight:600;margin-top:5px}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:40px}
+.feat{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:22px}
+.feat-icon{width:38px;height:38px;background:var(--bd);border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.feat-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.feat-desc{font-size:12px;color:var(--grey);line-height:1.6}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:40px;max-width:860px;margin-left:auto;margin-right:auto}
+.plan{background:var(--card);border:1px solid var(--brd);border-radius:18px;padding:26px;position:relative}
+.plan.hot{border-color:var(--blue);background:linear-gradient(135deg,#111c2e,#0d2040)}
+.plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--blue);color:var(--navy);font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap}
+.plan-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:5px}
+.plan-price{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;margin-bottom:3px}
+.plan-price sub{font-size:13px;font-weight:500;color:var(--grey)}
+.plan-trial{font-size:12px;color:var(--blue);font-weight:600;margin-bottom:5px}
+.plan-desc{font-size:12px;color:var(--grey);margin-bottom:18px;line-height:1.5}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:22px}
+.plan-features li{font-size:12px;color:var(--grey);display:flex;align-items:flex-start;gap:7px;line-height:1.4}
+.plan-features li::before{content:'✓';color:var(--blue);font-weight:700;flex-shrink:0;margin-top:1px}
+.plan-cta{width:100%;background:var(--blue);color:var(--navy);font-size:13px;font-weight:700;padding:12px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s;text-decoration:none;display:block;text-align:center}
+.plan-cta:hover{opacity:.9}
+.plan-cta.out{background:transparent;color:var(--white);border:1px solid var(--brd)}
+.plan-cta.out:hover{border-color:rgba(255,255,255,.3)}
+.pricing-note{text-align:center;font-size:13px;color:var(--grey);margin-top:20px}
+.pricing-note strong{color:var(--white)}
+
+/* TESTIMONIAL */
+.testi{background:var(--card);border:1px solid var(--bb);border-radius:18px;padding:28px;max-width:640px;margin:40px auto 0}
+.stars{color:var(--blue);font-size:13px;margin-bottom:10px}
+.testi-text{font-size:clamp(15px,2.2vw,18px);color:var(--white);line-height:1.6;margin-bottom:18px;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:10px}
+.testi-av{width:40px;height:40px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.testi-name{font-size:13px;font-weight:700}
+.testi-role{font-size:11px;color:var(--grey);margin-top:2px}
+
+/* CTA */
+.cta-sec{background:linear-gradient(135deg,#0d1f3c,#091020);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd);padding:80px 24px;text-align:center}
+.cta-sec h2{font-family:'Syne',sans-serif;font-size:clamp(26px,5vw,44px);font-weight:800;letter-spacing:-1px;margin-bottom:14px}
+.cta-sec p{font-size:16px;color:var(--grey);margin-bottom:28px}
+
+/* FOOTER */
+footer{padding:28px 24px;text-align:center;border-top:1px solid var(--brd)}
+footer p{font-size:12px;color:var(--grey)}
+footer a{color:var(--grey);text-decoration:none}
+footer a:hover{color:var(--white)}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal{background:#111827;border:1px solid var(--bb);border-radius:18px;padding:28px;max-width:400px;width:100%;position:relative}
+.modal h3{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px}
+.modal p{font-size:13px;color:var(--grey);margin-bottom:20px;line-height:1.6}
+.modal-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--grey);font-size:17px;cursor:pointer}
+.fg{margin-bottom:11px}
+.fg label{font-size:11px;font-weight:600;color:var(--grey);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.4px}
+.fi{width:100%;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 13px;color:var(--white);font-size:13px;font-family:'DM Sans',sans-serif}
+.fi:focus{outline:none;border-color:var(--blue)}
+.fi::placeholder{color:var(--grey)}
+.fse{width:100%;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 13px;color:var(--white);font-size:13px;font-family:'DM Sans',sans-serif}
+.modal-sub{width:100%;background:var(--blue);color:var(--navy);font-size:14px;font-weight:700;padding:12px;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px}
+.modal-ok{display:none;text-align:center;padding:16px 0}
+.modal-ok .big{font-size:44px;margin-bottom:10px}
+.modal-ok h4{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:7px}
+.modal-ok p{font-size:13px;color:var(--grey)}
+
+/* FADE IN */
+.fi-up{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.fi-up.vis{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Snap<span>Job</span></div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#guide">Get started</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+  </div>
+  <a class="nav-cta" href="#" onclick="openModal();return false">Get early access</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center">
+    <div class="pill"><span class="pill-dot"></span>Built for trades in Southeast Asia</div>
+    <h1>Your admin assistant<br>lives in <span>WhatsApp</span></h1>
+    <p class="hero-sub">Stop tracking jobs in your head. SnapJob turns WhatsApp messages into job cards, assigns your technicians, and sends invoices automatically.</p>
+    <div class="hero-btns">
+      <a class="btn-pri" href="#" onclick="openModal();return false">Get 3 months free</a>
+      <a class="btn-sec" href="#how">See how it works</a>
+    </div>
+
+    <!-- WA mock -->
+    <div style="position:relative;max-width:300px;width:100%;margin:0 auto">
+      <div class="wa-mock">
+        <div class="wa-head">
+          <div class="wa-av">❄️</div>
+          <div><div class="wa-nm">Chillops Aircon</div><div class="wa-st">SnapJob powered</div></div>
+        </div>
+        <div class="wa-body">
+          <div class="wa-msg"><div class="wa-in">Hi, my aircon is leaking and not cooling. I'm at Tampines St 21 #08-12</div><div class="wa-time">2:14 PM</div></div>
+          <div class="wa-divider">SnapJob created Job #1043 ⚡</div>
+          <div class="wa-msg" style="text-align:right"><div class="wa-out">Hi! We've received your request. Our team will confirm shortly 🙏</div><div class="wa-time" style="text-align:right">2:14 PM ✓✓</div></div>
+          <div style="margin-top:8px"><div class="typing"><span></span><span></span><span></span></div><div style="font-size:10px;color:var(--grey);margin-top:3px">Assigning technician...</div></div>
+        </div>
+      </div>
+      <div class="job-pop">
+        <div class="jp-label"><span class="jp-dot"></span>New job</div>
+        <div class="jp-name">David Tan</div>
+        <div class="jp-issue">Aircon leaking · Tampines</div>
+        <div class="jp-btn">Assign now →</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF BAR -->
+<div class="proof-bar">
+  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>No app download needed</div>
+  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>10-minute setup</div>
+  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Works on any phone</div>
+  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Free for 3 months</div>
+</div>
+
+<!-- WHO -->
+<section>
+  <div class="inner">
+    <div class="tag fi-up">Who it's for</div>
+    <div class="h2 fi-up">Built for every trade business</div>
+    <div class="trades">
+      <div class="trade fi-up"><div class="trade-icon">❄️</div><div class="trade-name">Aircon</div><div class="trade-desc">Servicing & repair</div></div>
+      <div class="trade fi-up"><div class="trade-icon">🔧</div><div class="trade-name">Plumbing</div><div class="trade-desc">Installation & repair</div></div>
+      <div class="trade fi-up"><div class="trade-icon">⚡</div><div class="trade-name">Electrical</div><div class="trade-desc">Wiring & fixtures</div></div>
+      <div class="trade fi-up"><div class="trade-icon">🏠</div><div class="trade-name">Renovation</div><div class="trade-desc">Works & maintenance</div></div>
+      <div class="trade fi-up"><div class="trade-icon">🧺</div><div class="trade-name">Appliance</div><div class="trade-desc">Washing machine, fridge...</div></div>
+      <div class="trade fi-up"><div class="trade-icon">🧹</div><div class="trade-name">Cleaning</div><div class="trade-desc">Home & commercial</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background:rgba(255,255,255,.02);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)">
+  <div class="inner">
+    <div class="tag fi-up">How it works</div>
+    <div class="h2 fi-up">Three people. Zero confusion.</div>
+    <div class="sub fi-up">Customer messages. You assign. Technician updates. Invoice sent. All through WhatsApp.</div>
+    <div class="steps">
+      <div class="step fi-up"><div class="step-num">1</div><div class="step-icon">💬</div><div class="step-title">Customer messages you</div><div class="step-desc">Customer WhatsApps your business number. SnapJob replies instantly and creates a Job Card automatically. No forms needed.</div></div>
+      <div class="step fi-up"><div class="step-num">2</div><div class="step-icon">👆</div><div class="step-title">You assign in one tap</div><div class="step-desc">See the job on your dashboard. Tap to assign a technician. They get the full job details on WhatsApp instantly.</div></div>
+      <div class="step fi-up"><div class="step-num">3</div><div class="step-icon">📸</div><div class="step-title">Technician updates via WhatsApp</div><div class="step-desc">Technician sends a photo or message to update the job. No app download. Your dashboard updates automatically.</div></div>
+      <div class="step fi-up"><div class="step-num">4</div><div class="step-icon">🧾</div><div class="step-title">Invoice sent automatically</div><div class="step-desc">Job done — SnapJob generates a PDF invoice with your PayNow QR and sends it to the customer via WhatsApp.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GET STARTED GUIDE -->
+<section id="guide">
+  <div class="inner" style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start">
+    <div>
+      <div class="tag fi-up">Get started</div>
+      <div class="h2 fi-up">Up and running<br>in 10 minutes</div>
+      <div class="sub fi-up">No technical setup. No training sessions. If you can use WhatsApp, you can use SnapJob.</div>
+      <div class="guide-steps">
+        <div class="gs fi-up">
+          <div class="gs-num">1</div>
+          <div><div class="gs-title">Create your account</div><div class="gs-desc">Sign up with your email or Google account. No credit card needed.</div><div class="gs-time">⏱ 1 minute</div></div>
+        </div>
+        <div class="gs fi-up">
+          <div class="gs-num">2</div>
+          <div><div class="gs-title">Enter your business name</div><div class="gs-desc">Add your business name, phone number, and operating hours. This appears on all invoices.</div><div class="gs-time">⏱ 2 minutes</div></div>
+        </div>
+        <div class="gs fi-up">
+          <div class="gs-num">3</div>
+          <div><div class="gs-title">Upload your logo and PayNow QR</div><div class="gs-desc">Drag and drop your logo and PayNow QR screenshot. They appear automatically on every invoice you send.</div><div class="gs-time">⏱ 2 minutes</div></div>
+        </div>
+        <div class="gs fi-up">
+          <div class="gs-num">4</div>
+          <div><div class="gs-title">Add your technicians</div><div class="gs-desc">Enter their name and WhatsApp number. SnapJob sends them a welcome message automatically — they don't need to do anything else.</div><div class="gs-time">⏱ 2 minutes</div></div>
+        </div>
+        <div class="gs fi-up">
+          <div class="gs-num">5</div>
+          <div><div class="gs-title">Start taking jobs</div><div class="gs-desc">Create your first job, assign it, and send an invoice. Your admin workload just dropped by 80%.</div><div class="gs-time">⏱ 3 minutes</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding-top:40px">
+      <!-- Dashboard preview card -->
+      <div style="background:var(--card);border:1px solid var(--brd);border-radius:16px;overflow:hidden">
+        <div style="background:var(--navy2);padding:12px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f87171"></div>
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--amber)"></div>
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--emerald)"></div>
+          <div style="font-size:11px;color:var(--grey);margin-left:8px">SnapJob Dashboard</div>
+        </div>
+        <div style="padding:16px">
+          <div style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Job Board</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:8px">
+              <div style="font-size:9px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:6px">New · 2</div>
+              <div style="background:var(--navy2);border-radius:6px;padding:7px;margin-bottom:5px"><div style="font-size:10px;font-weight:600;margin-bottom:2px">David Tan</div><div style="font-size:9px;color:var(--grey)">Aircon leaking</div></div>
+            </div>
+            <div style="background:rgba(26,171,255,.1);border:1px solid rgba(26,171,255,.2);border-radius:8px;padding:8px">
+              <div style="font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:6px">Assigned · 1</div>
+              <div style="background:var(--navy2);border-radius:6px;padding:7px;margin-bottom:5px"><div style="font-size:10px;font-weight:600;margin-bottom:2px">Mary Lim</div><div style="font-size:9px;color:var(--grey)">Gas top-up</div></div>
+            </div>
+            <div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:8px">
+              <div style="font-size:9px;font-weight:700;color:var(--emerald);text-transform:uppercase;margin-bottom:6px">Done · 1</div>
+              <div style="background:var(--navy2);border-radius:6px;padding:7px;margin-bottom:5px"><div style="font-size:10px;font-weight:600;margin-bottom:2px">James Ho</div><div style="font-size:9px;color:var(--grey)">Servicing ×2</div></div>
+            </div>
+          </div>
+          <div style="background:rgba(26,171,255,.08);border:1px solid rgba(26,171,255,.15);border-radius:8px;padding:10px">
+            <div style="font-size:9px;font-weight:700;color:var(--blue);margin-bottom:6px">✅ Invoice sent to James Ho</div>
+            <div style="font-size:10px;color:var(--grey)">$80 · PayNow QR included · 2:47 PM</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--grey)">Real dashboard — available on any browser, any device</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" style="background:rgba(255,255,255,.02);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)">
+  <div class="inner">
+    <div class="tag fi-up">Features</div>
+    <div class="h2 fi-up">Everything you need.<br>Nothing you don't.</div>
+    <div class="feat-grid">
+      <div class="feat fi-up"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="feat-title">WhatsApp Job Inbox</div><div class="feat-desc">Customers message your number. SnapJob auto-creates job cards with customer name, address, and issue. No manual entry.</div></div>
+      <div class="feat fi-up"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div><div class="feat-title">Kanban Job Board</div><div class="feat-desc">Drag jobs between New → Assigned → In Progress → Done → Paid. See everything at a glance.</div></div>
+      <div class="feat fi-up"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="feat-title">Technician Assignment</div><div class="feat-desc">Tap to assign. Technician gets WhatsApp with job details. They reply to confirm. No app download ever needed.</div></div>
+      <div class="feat fi-up"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="feat-title">Auto Invoice + PayNow QR</div><div class="feat-desc">Invoice generated from job card. Your logo, PayNow QR, UEN — all pre-filled. Sent as PDF via WhatsApp in one tap.</div></div>
+      <div class="feat fi-up"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div><div class="feat-title">Customer CRM</div><div class="feat-desc">Every past customer stored automatically. See job history, re-engage with one tap. Never lose a repeat customer.</div></div>
+      <div class="feat fi-up"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="feat-title">Monthly sales reports</div><div class="feat-desc">Filter invoices by month. See total invoiced, collected, and outstanding at a glance. Know your numbers always.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section>
+  <div class="inner" style="text-align:center">
+    <div class="tag fi-up" style="justify-content:center;display:flex">Early feedback</div>
+    <div class="testi fi-up">
+      <div class="stars">★★★★★</div>
+      <div class="testi-text">"Before SnapJob I was tracking everything in my head and three WhatsApp groups. I was missing jobs and forgetting invoices. Now my technician gets the job on WhatsApp, I approve the invoice in one tap, and the customer pays via PayNow. It's like having an admin I don't have to pay."</div>
+      <div class="testi-author">
+        <div class="testi-av">❄️</div>
+        <div><div class="testi-name">Zhiyi Ng</div><div class="testi-role">Founder, Chillops Aircon · Singapore</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" style="background:rgba(255,255,255,.02);border-top:1px solid var(--brd)">
+  <div class="inner" style="text-align:center">
+    <div class="tag fi-up" style="justify-content:center;display:flex">Pricing</div>
+    <div class="h2 fi-up">Less than one day's wages.<br>Saves you a full hire.</div>
+    <div class="sub fi-up" style="margin:0 auto 8px">vs hiring an admin at $1,500–$2,500/month in Singapore</div>
+    <div class="pricing-grid">
+
+      <div class="plan fi-up">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">Free <sub>forever</sub></div>
+        <div class="plan-trial">Always free · no credit card</div>
+        <div class="plan-desc">Perfect to get started and see if SnapJob works for your business.</div>
+        <ul class="plan-features">
+          <li>1 technician</li>
+          <li>5 jobs per month</li>
+          <li>WhatsApp job inbox</li>
+          <li>Basic job cards & Kanban</li>
+          <li>Manual invoice creation</li>
+          <li>Customer CRM</li>
+        </ul>
+        <a class="plan-cta out" href="#" onclick="openModal();return false">Start free</a>
+      </div>
+
+      <div class="plan hot fi-up">
+        <div class="plan-badge">Most popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$49 <sub>SGD / month</sub></div>
+        <div class="plan-trial">✨ Free for first 3 months</div>
+        <div class="plan-desc">For growing businesses with a team of technicians.</div>
+        <ul class="plan-features">
+          <li>Up to 10 technicians</li>
+          <li>Unlimited jobs</li>
+          <li>WhatsApp AI inbox (auto job cards)</li>
+          <li>Auto invoice + PayNow QR</li>
+          <li>Technician WhatsApp notifications</li>
+          <li>Monthly sales reports</li>
+          <li>Customer CRM & history</li>
+          <li>Logo & branding on invoices</li>
+        </ul>
+        <a class="plan-cta" href="#" onclick="openModal();return false">Get 3 months free</a>
+      </div>
+
+      <div class="plan fi-up">
+        <div class="plan-name">Business</div>
+        <div class="plan-price">$99 <sub>SGD / month</sub></div>
+        <div class="plan-trial">✨ Free for first 3 months</div>
+        <div class="plan-desc">For established businesses with larger teams.</div>
+        <ul class="plan-features">
+          <li>Up to 20 technicians</li>
+          <li>Unlimited jobs</li>
+          <li>Everything in Pro</li>
+          <li>Priority WhatsApp support</li>
+          <li>Custom invoice footer & UEN</li>
+          <li>Multi-branch support (coming)</li>
+        </ul>
+        <a class="plan-cta out" href="#" onclick="openModal();return false">Get 3 months free</a>
+      </div>
+
+    </div>
+    <div class="pricing-note">After your free trial, we'll WhatsApp you 7 days before billing starts. <strong>No surprises.</strong></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-sec">
+  <h2>Ready to stop managing<br>jobs manually?</h2>
+  <p>First 50 businesses get 6 months free. No credit card.</p>
+  <a class="btn-pri" href="#" onclick="openModal();return false">Get early access — it's free</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:7px">Snap<span style="color:var(--blue)">Job</span></div>
+  <p style="margin-bottom:6px">WhatsApp-first job management for trade businesses in Southeast Asia.</p>
+  <p><a href="mailto:hello@snapjob.sg">hello@snapjob.sg</a></p>
+  <p style="margin-top:14px;font-size:11px">© 2026 SnapJob. Built in Singapore.</p>
+</footer>
+
+<!-- WAITLIST MODAL -->
+<div class="modal-ov" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <div id="modal-form">
+      <h3>Get early access</h3>
+      <p>First 50 businesses get 6 months free. We'll WhatsApp you to get set up — takes 10 minutes.</p>
+      <div class="fg"><label>Your name</label><input type="text" id="m-name" class="fi" placeholder="e.g. Ahmad"></div>
+      <div class="fg"><label>Business name</label><input type="text" id="m-biz" class="fi" placeholder="e.g. Ahmad Aircon Services"></div>
+      <div class="fg"><label>WhatsApp number</label><input type="text" id="m-phone" class="fi" placeholder="+65 or +60..."></div>
+      <div class="fg"><label>Type of business</label>
+        <select id="m-trade" class="fse">
+          <option value="">Select your trade...</option>
+          <option>Aircon servicing & repair</option>
+          <option>Plumbing</option>
+          <option>Electrical</option>
+          <option>Appliance repair</option>
+          <option>Cleaning</option>
+          <option>Renovation</option>
+          <option>Other trades</option>
+        </select>
+      </div>
+      <div class="fg"><label>How many technicians?</label><input type="text" id="m-tech" class="fi" placeholder="e.g. 2"></div>
+      <button class="modal-sub" onclick="submitWaitlist()">Join waitlist — free</button>
+    </div>
+    <div class="modal-ok" id="modal-ok">
+      <div class="big">✅</div>
+      <h4>You're on the list!</h4>
+      <p>We'll WhatsApp you within 24 hours to get you set up. First 50 businesses get 6 months free.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal(){document.getElementById('modal').classList.add('open')}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function submitWaitlist(){
+  const name=document.getElementById('m-name').value.trim();
+  const phone=document.getElementById('m-phone').value.trim();
+  if(!name||!phone){alert('Please enter your name and WhatsApp number.');return;}
+  document.getElementById('modal-form').style.display='none';
+  document.getElementById('modal-ok').style.display='block';
+}
+// Fade in on scroll
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')})},{threshold:0.1});
+document.querySelectorAll('.fi-up').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
