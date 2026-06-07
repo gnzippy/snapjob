@@ -193,6 +193,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
 
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--emerald);color:#0a1628;font-size:13px;font-weight:700;padding:12px 18px;border-radius:10px;z-index:999;display:none}
+.paywall{position:fixed;inset:0;background:rgba(9,15,30,0.97);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
+.paywall.show{display:flex}
+.paywall h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:12px}
+.paywall p{font-size:15px;color:var(--grey);max-width:420px;line-height:1.7;margin-bottom:28px}
+.paywall-plans{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}
+.pw-plan{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:20px;min-width:200px;text-align:left}
+.pw-plan.hot{border-color:var(--blue)}
+.pw-plan-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px}
+.pw-plan-price{font-size:24px;font-weight:800;color:var(--blue);margin-bottom:4px}
+.pw-plan-desc{font-size:12px;color:var(--grey);margin-bottom:12px}
+.pw-btn{width:100%;background:var(--blue);color:var(--navy);font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.trial-banner{background:var(--bd);border:1px solid var(--bb);border-radius:10px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.trial-banner.warn{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.3);color:var(--amber)}
 
 @media(max-width:900px){.sg{grid-template-columns:1fr 1fr}.kb{grid-template-columns:repeat(5,170px);overflow-x:auto}.set-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.sb{display:none}.main{margin-left:0}}
@@ -232,6 +245,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
 
   <!-- JOBS -->
   <div id="sc-jobs" class="sc on">
+    <div id="trial-banner" style="display:none"></div>
     <div class="guide">📋 Drag job cards between columns to update their status. Click any card to assign a technician and view full details.</div>
     <div class="sg">
       <div class="stat"><div class="sl2">Jobs today</div><div class="sv" id="stat-today">—</div><div class="ss">all statuses</div></div>
@@ -545,6 +559,34 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
 
 <div class="toast" id="toast"></div>
 
+<!-- PAYWALL -->
+<div class="paywall" id="paywall">
+  <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px">Snap<span style="color:var(--blue)">Job</span></div>
+  <h2 style="margin-top:16px">Your free trial has ended</h2>
+  <p>Choose a plan to keep managing your jobs, technicians, and invoices. Your data is safe and ready when you upgrade.</p>
+  <div class="paywall-plans">
+    <div class="pw-plan">
+      <div class="pw-plan-name">Starter</div>
+      <div class="pw-plan-price" style="color:var(--emerald)">Free</div>
+      <div class="pw-plan-desc">1 technician · 5 jobs/month</div>
+      <button class="pw-btn" style="background:var(--emerald)" onclick="selectPlan('starter')">Continue free</button>
+    </div>
+    <div class="pw-plan hot">
+      <div class="pw-plan-name">Pro ⭐</div>
+      <div class="pw-plan-price">$49<span style="font-size:13px;color:var(--grey)">/mo SGD</span></div>
+      <div class="pw-plan-desc">10 technicians · unlimited jobs</div>
+      <button class="pw-btn" onclick="selectPlan('pro')">Upgrade to Pro</button>
+    </div>
+    <div class="pw-plan">
+      <div class="pw-plan-name">Business</div>
+      <div class="pw-plan-price">$99<span style="font-size:13px;color:var(--grey)">/mo SGD</span></div>
+      <div class="pw-plan-desc">20 technicians · unlimited jobs</div>
+      <button class="pw-btn" style="background:transparent;color:var(--white);border:1px solid var(--brd)" onclick="selectPlan('business')">Upgrade</button>
+    </div>
+  </div>
+  <p style="font-size:12px;color:rgba(136,153,170,0.6)">Questions? WhatsApp us at +65 8772 6289</p>
+</div>
+
 <script>
 const SUPABASE_URL='https://jjxvcglxxelknlhngumd.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZjZ2x4eGVsa25saG5ndW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjQ3ODAsImV4cCI6MjA5NTgwMDc4MH0.f91yxUb0_HRtOr0HQJtT2O9mK7VrBaYxZdndKU735qc';
@@ -589,6 +631,47 @@ async function loadBusiness(){
     currentBusiness=biz;
     document.getElementById('sb-biz').textContent='My Business';
     document.getElementById('s-footer').value='Thank you for your business! Payment via PayNow. 14-day service guarantee.';
+  }
+  checkTrial();
+}
+
+function checkTrial(){
+  if(!currentBusiness)return;
+  const created=new Date(currentBusiness.created_at);
+  const now=new Date();
+  const daysSince=Math.floor((now-created)/(1000*60*60*24));
+  const trialDays=90;
+  const remaining=trialDays-daysSince;
+  const plan=currentBusiness.plan||'pro'; // default to pro during trial
+
+  // Show trial banner
+  const banner=document.getElementById('trial-banner');
+  if(banner){
+    if(remaining>0&&remaining<=14){
+      banner.style.display='flex';
+      banner.className='trial-banner warn';
+      banner.innerHTML=`⚠️ <span>Your free trial ends in <strong>${remaining} days</strong>. <a href="#" onclick="document.getElementById('paywall').classList.add('show')" style="color:var(--amber);font-weight:700">Choose a plan</a> to keep access.</span>`;
+    }else if(remaining>0){
+      banner.style.display='flex';
+      banner.className='trial-banner';
+      banner.innerHTML=`✨ <span>Free trial — <strong>${remaining} days remaining</strong>. All Pro features included.</span>`;
+    }
+  }
+
+  // Show paywall if trial expired and on free/expired plan
+  if(remaining<=0&&(!currentBusiness.plan||currentBusiness.plan==='trial')){
+    document.getElementById('paywall').classList.add('show');
+  }
+}
+
+function selectPlan(plan){
+  // For now just close paywall and note plan selected
+  // Later: redirect to Stripe payment link
+  document.getElementById('paywall').classList.remove('show');
+  if(plan==='starter'){
+    showToast('Continuing on Starter plan — 1 technician, 5 jobs/month');
+  }else{
+    showToast('Redirecting to payment... (Stripe coming soon)');
   }
 }
 
