@@ -243,13 +243,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
       <h2>All jobs</h2>
       <button class="btn btn-b btn-sm" onclick="openMo()">+ New job</button>
     </div>
-    <div class="kb">
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;height:calc(100vh - 310px)">
+    <div class="kb" style="height:100%">
       <div class="col cn" id="col-new" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'new',this)"><div class="ch"><span class="ct">New</span><span class="cc" id="cnt-new">0</span></div><div class="cb" id="cb-new"><div class="empty-col">No new jobs</div></div></div>
       <div class="col ca" id="col-assigned" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'assigned',this)"><div class="ch"><span class="ct">Assigned</span><span class="cc" id="cnt-assigned">0</span></div><div class="cb" id="cb-assigned"><div class="empty-col">None assigned</div></div></div>
       <div class="col cp" id="col-in_progress" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'in_progress',this)"><div class="ch"><span class="ct">In Progress</span><span class="cc" id="cnt-in_progress">0</span></div><div class="cb" id="cb-in_progress"><div class="empty-col">None in progress</div></div></div>
       <div class="col cd" id="col-done" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'done',this)"><div class="ch"><span class="ct">Done</span><span class="cc" id="cnt-done">0</span></div><div class="cb" id="cb-done"><div class="empty-col">No completed jobs</div></div></div>
       <div class="col cx" id="col-paid" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'paid',this)"><div class="ch"><span class="ct">Paid</span><span class="cc" id="cnt-paid">0</span></div><div class="cb" id="cb-paid"><div class="empty-col">No paid jobs</div></div></div>
     </div>
+    </div>
+
+    <!-- ACTIVITY FEED -->
+    <div style="background:var(--card);border:1px solid var(--brd);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <div style="font-size:12px;font-weight:700;color:var(--white)">Activity feed</div>
+        <div style="font-size:10px;color:var(--grey)" id="feed-time">Live</div>
+      </div>
+      <div id="activity-feed" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;color:var(--grey);text-align:center;padding:20px">Loading...</div>
+      </div>
+    </div>
+
   </div>
 
   <!-- TECHNICIANS -->
@@ -427,12 +441,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
         <div id="upload-status" style="font-size:12px;margin-top:6px;display:none"></div>
       </div>
       <div class="set-card">
-        <h3>WhatsApp notifications <span style="font-size:11px;color:var(--grey);font-weight:400">(optional)</span></h3>
-        <p>Optional — only needed if you use Make.com for additional automations like logging to Google Sheets. WhatsApp job notifications to technicians work without this.</p>
-        <div class="fg"><label>Make webhook URL <span style="color:var(--grey);font-weight:400;text-transform:none">(leave blank if not using)</span></label><input class="fi2" id="s-webhook" placeholder="https://hook.eu1.make.com/... (optional)"></div>
-        <div style="background:var(--bd);border:1px solid var(--bb);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--grey);line-height:1.7;margin-bottom:12px">
-          ✅ <strong style="color:var(--white)">For demos — leave this blank.</strong> WhatsApp notifications to technicians fire directly without Make.<br><br>
-          Only add this if you want jobs logged to Google Sheets or Telegram via Make.
+        <h3>WhatsApp notifications</h3>
+        <p>Your technicians receive job assignments via WhatsApp automatically. You can also receive a WhatsApp when new jobs come in.</p>
+
+        <div class="fg"><label>Your WhatsApp number</label>
+          <input class="fi2" id="s-wa-number" placeholder="e.g. +65 9xxx xxxx">
+          <div style="font-size:11px;color:var(--grey);margin-top:4px">You'll get a WhatsApp when a new customer enquiry arrives and when a job is marked done.</div>
+        </div>
+
+        <div style="height:1px;background:var(--brd);margin:14px 0"></div>
+
+        <div class="fg"><label>Make webhook URL <span style="color:var(--grey);font-weight:400;font-size:10px;text-transform:none">— optional, for Google Sheets logging</span></label>
+          <input class="fi2" id="s-webhook" placeholder="https://hook.eu1.make.com/... (optional)">
+        </div>
+        <div style="background:var(--card2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--grey);line-height:1.7;margin-bottom:12px">
+          ✅ <strong style="color:var(--white)">For demos — only fill in your WhatsApp number above.</strong> Leave Make webhook blank unless you use Make for Google Sheets.
         </div>
         <button class="sav-btn" onclick="saveBusiness()">Save</button>
       </div>
@@ -483,8 +506,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--white);
     <div class="fg"><label>What needs to be done?</label><input class="fi2" id="j-desc" placeholder="e.g. Washing machine not spinning, Aircon leaking, Tap leaking..."></div>
     <div class="fg-row">
       <div class="fg"><label>Service type</label><input class="fi2" id="j-service" placeholder="e.g. Aircon repair, Plumbing, Washing machine..."></div>
-      <div class="fg"><label>Assign to technician</label>
-        <select class="fse2" id="j-tech"><option value="">Unassigned</option></select>
+      <div class="fg"><label>Assign to technician <span style="color:var(--grey);font-weight:400;font-size:10px">(optional — assign later)</span></label>
+        <select class="fse2" id="j-tech"><option value="" selected>— Leave unassigned —</option></select>
       </div>
     </div>
     <button class="sav" id="save-job-btn" onclick="saveJob()">Create job card</button>
@@ -536,6 +559,7 @@ async function init(){
   await loadJobs();
   await loadTechnicians();
   await loadInvoices();
+  await loadActivityFeed();
 }
 
 async function loadBusiness(){
@@ -551,6 +575,7 @@ async function loadBusiness(){
     document.getElementById('s-addr').value=data.address||'';
     document.getElementById('s-hours').value=data.hours||'';
     document.getElementById('s-webhook').value=data.make_webhook_url||'';
+    document.getElementById('s-wa-number').value=data.wa_number||'';
     document.getElementById('s-footer').value=data.invoice_footer||'Thank you for your business! Payment via PayNow. 14-day service guarantee.';
     if(data.logo_url){document.getElementById('logo-preview').innerHTML=`<img src="${data.logo_url}" style="max-width:100%;max-height:70px;border-radius:6px;object-fit:contain"><div style="font-size:11px;color:var(--blue);margin-top:5px">✓ Logo uploaded</div>`;}
     if(data.paynow_qr_url){document.getElementById('qr-preview').innerHTML=`<img src="${data.paynow_qr_url}" style="max-width:100%;max-height:70px;border-radius:6px;object-fit:contain"><div style="font-size:11px;color:var(--blue);margin-top:5px">✓ PayNow QR uploaded</div>`;}
@@ -869,6 +894,7 @@ async function assignJob(){
     await fetch(currentBusiness.make_webhook_url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'job_assigned',customer:cust?.name,phone:cust?.phone,address:currentJob.address,service:currentJob.service_type,technician:tech?.name})}).catch(()=>{});
   }
   await loadJobs();
+  await loadActivityFeed();
 }
 
 async function saveJob(){
@@ -886,7 +912,17 @@ async function saveJob(){
     const{data:cust}=await sb.from('customers').insert({business_id:currentBusiness.id,name:name||'Unknown',phone,address:addr}).select().single();
     customerId=cust?.id;
   }
-  await sb.from('jobs').insert({business_id:currentBusiness.id,customer_id:customerId,technician_id:techId||null,title:name||desc,description:desc,address:addr,service_type:service,source,status:techId?'assigned':'new'});
+  const {data:newJob} = await sb.from('jobs').insert({business_id:currentBusiness.id,customer_id:customerId,technician_id:techId||null,title:name||desc,description:desc,address:addr,service_type:service,source,status:techId?'assigned':'new'}).select().single();
+  
+  // Notify owner via WhatsApp if they have a number set
+  if(currentBusiness?.wa_number) {
+    const ownerPhone = currentBusiness.wa_number.replace(/[^0-9]/g,'');
+    const ownerMsg = '🆕 NEW JOB\n\n👤 '+name+'\n📱 '+(phone||'—')+'\n📍 '+(addr||'—')+'\n🔧 '+(desc||service||'—')+'\n\nLog in to assign a technician.';
+    const WA_TOKEN = 'EAAVt7EbgD6oBRqfJuoUjYCpRC0Cj4ZCOJiQNpeCdXnBGbedVZBEs5PwSn9kdmceivDzoa2C2YO5Hg1viZCZBToldsgRC3FljR9i9DEQP240F5R7DGBPI8sx7DyAmLZBUYaynabhZA1oQi92yCieyFzp6vCrJxnC4snuvX5RBK5ztznpNfeZCIOtEcWqsHZB00QZDZD';
+    const WA_PHONE_ID = '1162831236911975';
+    fetch('https://graph.facebook.com/v18.0/'+WA_PHONE_ID+'/messages',{method:'POST',headers:{'Authorization':'Bearer '+WA_TOKEN,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:ownerPhone,type:'text',text:{body:ownerMsg}})}).catch(()=>{});
+  }
+
   btn.textContent='Create job card';btn.disabled=false;
   closeMo();await loadJobs();showToast('Job created!');
 }
@@ -910,6 +946,7 @@ async function saveBusiness(){
     address:document.getElementById('s-addr').value.trim(),
     hours:document.getElementById('s-hours').value.trim(),
     make_webhook_url:document.getElementById('s-webhook').value.trim(),
+    wa_number:document.getElementById('s-wa-number').value.trim(),
     invoice_footer:document.getElementById('s-footer').value.trim(),
   };
   await sb.from('businesses').update(updates).eq('id',currentBusiness.id);
@@ -1166,6 +1203,51 @@ function newJobForCustomer(custId, name, phone, addr) {
   show('jobs', document.querySelectorAll('.ni')[0]);
   openMo();
 }
+
+// Activity feed
+async function loadActivityFeed() {
+  if (!currentBusiness) return;
+  const feed = document.getElementById('activity-feed');
+  const { data: jobs } = await sb.from('jobs')
+    .select('*, customers(name), technicians(name)')
+    .eq('business_id', currentBusiness.id)
+    .order('updated_at', { ascending: false })
+    .limit(20);
+
+  if (!jobs || jobs.length === 0) {
+    feed.innerHTML = '<div style="font-size:12px;color:var(--grey);text-align:center;padding:20px">No activity yet</div>';
+    return;
+  }
+
+  const statusIcon = { new:'🆕', assigned:'👤', in_progress:'🔧', done:'✅', paid:'💰', archived:'🗄️' };
+  const statusLabel = { new:'New job', assigned:'Assigned', in_progress:'In progress', done:'Completed', paid:'Paid', archived:'Archived' };
+
+  feed.innerHTML = jobs.map(job => {
+    const time = timeSince(job.updated_at);
+    const cust = job.customers?.name || 'Unknown';
+    const tech = job.technicians?.name || '';
+    const icon = statusIcon[job.status] || '📋';
+    const label = statusLabel[job.status] || job.status;
+    return `<div style="background:var(--card2);border-radius:8px;padding:8px 10px;border-left:2px solid ${job.status==='done'?'var(--emerald)':job.status==='paid'?'var(--blue)':job.status==='new'?'var(--amber)':'var(--brd)'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <div style="font-size:11px;font-weight:600;color:var(--white)">${icon} ${label}</div>
+        <div style="font-size:10px;color:var(--grey)">${time}</div>
+      </div>
+      <div style="font-size:11px;color:var(--grey)">${cust}${tech?' → '+tech:''}</div>
+      ${job.description?`<div style="font-size:10px;color:rgba(136,153,170,0.6);margin-top:2px">${job.description.substring(0,40)}${job.description.length>40?'...':''}</div>`:''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('feed-time').textContent = 'Updated ' + new Date().toLocaleTimeString('en-SG', { hour:'2-digit', minute:'2-digit' });
+}
+
+// Auto-refresh every 30 seconds
+setInterval(() => {
+  if (document.getElementById('sc-jobs').classList.contains('on')) {
+    loadJobs();
+    loadActivityFeed();
+  }
+}, 30000);
 
 async function restoreJob(id) {
   await sb.from('jobs').update({ status: 'new' }).eq('id', id);
