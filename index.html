@@ -352,7 +352,7 @@ footer a{color:var(--grey);text-decoration:none}
   <div class="inner" style="text-align:center">
     <div class="testi fiu">
       <div class="stars">★★★★★</div>
-      <div class="testi-text">"Before SnapJob I was tracking everything in my head and three WhatsApp groups. I was missing jobs and forgetting invoices. Now my technician gets the job details on WhatsApp, I send the invoice in one tap, and the customer pays via PayNow. It replaced what would have cost me $1,500/month in admin."</div>
+      <div class="testi-text">"Before SnapJob I had three WhatsApp groups just to manage jobs. I was missing enquiries and forgetting to invoice. Now my technician gets the job on WhatsApp the moment I assign it, I send the invoice in one tap, and the customer pays via PayNow. It's like having an admin I don't have to pay."</div>
       <div class="testi-author">
         <div class="testi-av">❄️</div>
         <div><div class="testi-name">Zhiyi Ng</div><div class="testi-role">Founder, Chillops Aircon · Singapore</div></div>
@@ -474,10 +474,33 @@ footer a{color:var(--grey);text-decoration:none}
 <script>
 function openModal(){document.getElementById('modal').classList.add('open')}
 function closeModal(){document.getElementById('modal').classList.remove('open')}
-function submitWaitlist(){
+async function submitWaitlist(){
   const name=document.getElementById('m-name').value.trim();
+  const biz=document.getElementById('m-biz').value.trim();
   const phone=document.getElementById('m-phone').value.trim();
+  const trade=document.getElementById('m-trade').value;
+  const techs=document.getElementById('m-tech').value.trim();
   if(!name||!phone){alert('Please enter your name and WhatsApp number.');return;}
+
+  const btn=document.querySelector('.modal-sub');
+  btn.textContent='Saving...';btn.disabled=true;
+
+  try {
+    // Save to Supabase waitlist table
+    await fetch('https://jjxvcglxxelknlhngumd.supabase.co/rest/v1/waitlist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZjZ2x4eGVsa25saG5ndW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjQ3ODAsImV4cCI6MjA5NTgwMDc4MH0.f91yxUb0_HRtOr0HQJtT2O9mK7VrBaYxZdndKU735qc',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZjZ2x4eGVsa25saG5ndW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjQ3ODAsImV4cCI6MjA5NTgwMDc4MH0.f91yxUb0_HRtOr0HQJtT2O9mK7VrBaYxZdndKU735qc',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ name, business_name: biz, phone, trade, technicians: techs, created_at: new Date().toISOString() })
+    });
+  } catch(e) {
+    console.log('Waitlist save error:', e);
+  }
+
   document.getElementById('modal-form').style.display='none';
   document.getElementById('modal-ok').style.display='block';
 }
