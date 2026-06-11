@@ -290,7 +290,8 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
   </div>
 
   <!-- INVOICES -->
-  <div id="sc-invoices" class="sc">
+  <div id="sc-invoices" class="sc" style="padding:0">
+  <div style="padding:20px 22px 0">
     <div class="guide">🧾 All your invoices in one place. Use the search box below to find a customer, or filter by month to see your monthly sales. Click "View" to open and print any invoice.</div>
     <div class="ph">
       <div><div class="pt">Invoices</div><div class="ps2">Search, filter by month, and track payments.</div></div>
@@ -310,7 +311,8 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
       <select class="fse2" id="inv-month" onchange="filterInvoices()" style="max-width:160px;padding:9px 12px"><option value="">All time</option></select>
       <select class="fse2" id="inv-status-filter" onchange="filterInvoices()" style="max-width:130px;padding:9px 12px"><option value="">All statuses</option><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option></select>
     </div>
-    <div class="itbl">
+    </div>
+    <div class="itbl" style="border-radius:0;border-left:none;border-right:none;border-bottom:none">
       <table>
         <thead><tr><th>#</th><th>Date</th><th>Customer</th><th>Description</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="inv-tbody"><tr><td colspan="7" style="text-align:center;color:var(--grey);padding:20px">Loading invoices...</td></tr></tbody>
@@ -394,7 +396,8 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
   </div>
 
   <!-- CUSTOMERS / CRM -->
-  <div id="sc-customers" class="sc">
+  <div id="sc-customers" class="sc" style="padding:0">
+  <div style="padding:20px 22px 0">
     <div class="guide">👥 All your past customers in one place. Click any customer to see their job history and re-engage them. Archived jobs appear here too.</div>
     <div class="ph">
       <div><div class="pt">Customers</div><div class="ps2">Past customers, job history, and archived jobs.</div></div>
@@ -402,7 +405,8 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
     <div style="display:flex;gap:10px;margin-bottom:14px">
       <input class="fi2" id="cust-search" placeholder="Search by name or phone..." oninput="filterCustomers()" style="max-width:280px">
     </div>
-    <div class="itbl">
+    </div>
+    <div class="itbl" style="border-radius:0;border-left:none;border-right:none;border-bottom:none">
       <table>
         <thead><tr><th>Customer</th><th>Phone</th><th>Total jobs</th><th>Last job</th><th>Total spent</th><th>Action</th></tr></thead>
         <tbody id="cust-tbody"><tr><td colspan="6" style="text-align:center;color:var(--grey);padding:20px">Loading customers...</td></tr></tbody>
@@ -1351,13 +1355,13 @@ async function loadActivityFeed() {
     const tech = job.technicians?.name || '';
     const icon = statusIcon[job.status] || '📋';
     const label = statusLabel[job.status] || job.status;
-    return `<div style="background:var(--card2);border-radius:8px;padding:8px 10px;border-left:2px solid ${job.status==='done'?'var(--emerald)':job.status==='paid'?'var(--blue)':job.status==='new'?'var(--amber)':'var(--brd)'}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-        <div style="font-size:11px;font-weight:600;color:var(--white)">${icon} ${label}</div>
-        <div style="font-size:10px;color:var(--grey)">${time}</div>
+    const color = job.status==='done'?'var(--emerald)':job.status==='paid'?'var(--blue)':job.status==='new'?'var(--amber)':job.status==='in_progress'?'var(--purple)':'var(--grey)';
+    return `<div style="padding:9px 11px;border-radius:8px;background:var(--card2);border-left:3px solid ${color}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:11px;font-weight:600;color:var(--white)">${cust}</span>
+        <span style="font-size:10px;color:var(--grey)">${time}</span>
       </div>
-      <div style="font-size:11px;color:var(--grey)">${cust}${tech?' → '+tech:''}</div>
-      ${job.description?`<div style="font-size:10px;color:rgba(136,153,170,0.6);margin-top:2px">${job.description.substring(0,40)}${job.description.length>40?'...':''}</div>`:''}
+      <span style="font-size:10px;color:${color};font-weight:600">${icon} ${label}</span>${tech?`<span style="font-size:10px;color:var(--grey)"> · ${tech}</span>`:''}
     </div>`;
   }).join('');
 
