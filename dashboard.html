@@ -777,7 +777,7 @@ async function loadInvoices(){
   if(!currentBusiness)return;
   const{data}=await sb.from('invoices').select('*,customers(name,phone)').eq('business_id',currentBusiness.id).order('created_at',{ascending:false});
   allInvoices=data||[];
-  const months=new Set();
+  const months=new Map();
   allInvoices.forEach(inv=>{
     const d=new Date(inv.created_at);
     const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
