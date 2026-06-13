@@ -676,7 +676,7 @@ function selectPlan(plan){
 
 async function loadJobs(){
   if(!currentBusiness)return;
-  const{data:jobs}=await sb.from('jobs').select('*,customers(*),technicians(*)').eq('business_id',currentBusiness.id).neq('status','archived').order('created_at',{ascending:false});
+  const{data:jobs}=await sb.from('jobs').select('*,customers(*),technicians(*)').eq('business_id',currentBusiness.id).order('created_at',{ascending:false});
   if(!jobs)return;
   const statuses=['new','assigned','in_progress','done','paid'];
   statuses.forEach(s=>{
@@ -685,7 +685,7 @@ async function loadJobs(){
   });
   const today=new Date().toDateString();
   let todayCount=0,pendingCount=0,activeCount=0;
-  jobs.forEach(job=>{
+  jobs.filter(j=>j.status!=='archived').forEach(job=>{
     const cb=document.getElementById('cb-'+job.status);
     const cnt=document.getElementById('cnt-'+job.status);
     if(!cb)return;
@@ -1250,17 +1250,18 @@ async function loadCustomers() {
   if (!currentBusiness) return;
   // Load customers and jobs separately to avoid foreign key issues
   const { data: custs } = await sb.from('customers').select('*').eq('business_id', currentBusiness.id).order('created_at', { ascending: false });
-  const { data: jobs } = await sb.from('jobs').select('id,customer_id,status,created_at,total').eq('business_id', currentBusiness.id).neq('status','archived');
+  const { data: jobs } = await sb.from('jobs').select('id,customer_id,status,created_at,total').eq('business_id', currentBusiness.id);
   
   // Attach jobs to customers
   allCustomers = (custs || []).map(cust => ({
     ...cust,
-    jobs: (jobs || []).filter(j => j.customer_id === cust.id)
+    jobs: (jobs || []).filter(j => j.customer_id === cust.id && j.status !== 'archived')
   }));
   renderCustomers(allCustomers);
 
   // Load archived jobs
-  const { data: archived } = await sb.from('jobs').select('*, customers(name,phone)').eq('business_id', currentBusiness.id).eq('status', 'archived').order('updated_at', { ascending: false });
+  const { data: allJobs } = await sb.from('jobs').select('*, customers(name,phone)').eq('business_id', currentBusiness.id).order('updated_at', { ascending: false });
+  const archived = (allJobs || []).filter(j => j.status === 'archived');
   const archTbody = document.getElementById('archive-tbody');
   if (!archived || archived.length === 0) {
     archTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--grey);padding:20px">No archived jobs</td></tr>';
