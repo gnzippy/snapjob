@@ -451,7 +451,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
         <div id="upload-status" style="font-size:12px;margin-top:6px;display:none"></div>
       </div>
       <div class="set-card">
-        <h3>WhatsApp notifications</h3>
+        <h3>Notifications</h3>
         <p>Your technicians receive job assignments via WhatsApp automatically. You can also receive a WhatsApp when new jobs come in.</p>
 
         <div class="fg"><label>Your WhatsApp number</label>
@@ -930,8 +930,6 @@ async function assignJob(){
   const cust=currentJob.customers;
   const msg='🔧 NEW JOB ASSIGNED\n\n👤 Customer: '+(cust?.name||'—')+'\n📱 Phone: '+(cust?.phone||'—')+'\n📍 Address: '+(currentJob.address||'—')+'\n🔧 Job: '+(currentJob.description||currentJob.service_type||'—')+'\n\nReply 1 to confirm.';
 
-  // Send via secure API
-  const WA_PHONE_ID = '1162831236911975';
 
   // Format phone — keep country code, remove non-digits
   const rawPhone = (tech?.phone||'').trim();
@@ -945,33 +943,10 @@ async function assignJob(){
   const toPhone = rawPhone.replace(/[^0-9]/g,'');
 
   try {
-    const waRes = await fetch('https://graph.facebook.com/v18.0/'+WA_PHONE_ID+'/messages', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer '+WA_TOKEN,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: toPhone,
-        type: 'text',
-        text: { body: msg }
-      })
-    });
-    const waData = await waRes.json();
-    console.log('WhatsApp response:', JSON.stringify(waData));
-
-    if(waRes.ok && waData.messages){
-      btn.textContent='✓ Assigned — call '+tech?.name+' on '+(tech?.phone||'—');
-      btn.style.background='#0d3a20';btn.style.color='var(--emerald)';
-      showToast('Job assigned! Call '+tech?.name+' to notify them.');
-    } else {
-      const errMsg = waData.error?.message || JSON.stringify(waData);
-      console.error('WhatsApp error:', errMsg);
-      btn.textContent='✓ Assigned — WA error: '+errMsg.substring(0,40);
-      btn.style.background='#2a1a00';btn.style.color='var(--amber)';
-      showToast('Assigned. WA error: '+errMsg.substring(0,60));
-    }
+    // No automatic notification — owner calls technician directly
+    btn.textContent='✓ Assigned — call '+tech?.name+' on '+(tech?.phone||'—');
+    btn.style.background='#0d3a20';btn.style.color='var(--emerald)';
+    showToast('Job assigned! Call '+tech?.name+' to notify them.');
   } catch(err) {
     console.error('Fetch error:', err);
     btn.textContent='✓ Assigned — network error';
