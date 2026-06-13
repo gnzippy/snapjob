@@ -402,7 +402,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
     </div>
     <div class="itbl">
       <table>
-        <thead><tr><th>Customer</th><th>Phone</th><th>Total jobs</th><th>Last job</th><th>Total spent</th><th>Action</th></tr></thead>
+        <thead><tr><th>Customer</th><th>Phone</th><th>Jobs</th><th>Last job</th><th>Action</th></tr></thead>
         <tbody id="cust-tbody"><tr><td colspan="6" style="text-align:center;color:var(--grey);padding:20px">Loading customers...</td></tr></tbody>
       </table>
     </div>
@@ -1272,9 +1272,15 @@ async function archiveJob() {
 let allCustomers = [];
 async function loadCustomers() {
   if (!currentBusiness) return;
-  // Load all customers with job counts
-  const { data: custs } = await sb.from('customers').select('*, jobs(*)').eq('business_id', currentBusiness.id);
-  allCustomers = custs || [];
+  // Load customers and jobs separately to avoid foreign key issues
+  const { data: custs } = await sb.from('customers').select('*').eq('business_id', currentBusiness.id).order('created_at', { ascending: false });
+  const { data: jobs } = await sb.from('jobs').select('id,customer_id,status,created_at,total').eq('business_id', currentBusiness.id).neq('status','archived');
+  
+  // Attach jobs to customers
+  allCustomers = (custs || []).map(cust => ({
+    ...cust,
+    jobs: (jobs || []).filter(j => j.customer_id === cust.id)
+  }));
   renderCustomers(allCustomers);
 
   // Load archived jobs
@@ -1299,15 +1305,17 @@ function renderCustomers(custs) {
     return;
   }
   tbody.innerHTML = custs.map(cust => {
-    const jobs = (cust.jobs || []).filter(j => j.status !== 'archived');
-    const lastJob = jobs.length > 0 ? new Date(Math.max(...jobs.map(j => new Date(j.created_at)))).toLocaleDateString('en-SG') : '—';
+    const custJobs = (cust.jobs || []);
+    const lastJob = custJobs.length > 0 ? new Date(Math.max(...custJobs.map(j => new Date(j.created_at)))).toLocaleDateString('en-SG',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    const safeName = (cust.name||'—').replace(/'/g,"\'");
+    const safePhone = (cust.phone||'').replace(/'/g,"\'");
+    const safeAddr = (cust.address||'').replace(/'/g,"\'");
     return `<tr>
-      <td style="font-weight:600">${cust.name||'—'}</td>
+      <td style="font-weight:600;font-size:14px">${cust.name||'—'}</td>
       <td style="color:var(--grey)">${cust.phone||'—'}</td>
-      <td style="text-align:center">${jobs.length}</td>
+      <td style="text-align:center;font-weight:600">${custJobs.length}</td>
       <td style="color:var(--grey);font-size:12px">${lastJob}</td>
-      <td style="font-weight:600;color:var(--emerald)">—</td>
-      <td><span class="ia" onclick="newJobForCustomer('${cust.id}','${cust.name}','${cust.phone||''}','${cust.address||''}')">+ New job</span></td>
+      <td><span class="ia" onclick="newJobForCustomer('${cust.id}','${safeName}','${safePhone}','${safeAddr}')">+ New job</span></td>
     </tr>`;
   }).join('');
 }
