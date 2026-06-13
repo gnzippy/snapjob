@@ -133,7 +133,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
 .info-bar{background:var(--card);border:1px solid var(--bb);border-radius:10px;padding:12px 14px;margin-top:16px;font-size:13px;color:var(--grey);line-height:1.6}
 
 /* INVOICES */
-.itbl{background:var(--card);border:1px solid var(--brd);border-radius:12px;overflow:hidden}
+.itbl{background:var(--card);border:1px solid var(--brd);border-radius:12px;overflow:auto;flex:1}
 .itbl table{width:100%;border-collapse:collapse}
 .itbl th{background:var(--card2);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--brd)}
 .itbl td{padding:12px 14px;border-bottom:1px solid var(--brd);font-size:13px}
@@ -290,8 +290,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
   </div>
 
   <!-- INVOICES -->
-  <div id="sc-invoices" class="sc" style="padding:0">
-  <div style="padding:20px 22px 0">
+  <div id="sc-invoices" class="sc">
     <div class="guide">🧾 All your invoices in one place. Use the search box below to find a customer, or filter by month to see your monthly sales. Click "View" to open and print any invoice.</div>
     <div class="ph">
       <div><div class="pt">Invoices</div><div class="ps2">Search, filter by month, and track payments.</div></div>
@@ -312,7 +311,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
       <select class="fse2" id="inv-status-filter" onchange="filterInvoices()" style="max-width:130px;padding:9px 12px"><option value="">All statuses</option><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option></select>
     </div>
     </div>
-    <div class="itbl" style="border-radius:0;border-left:none;border-right:none;border-bottom:none">
+    <div class="itbl">
       <table>
         <thead><tr><th>#</th><th>Date</th><th>Customer</th><th>Description</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="inv-tbody"><tr><td colspan="7" style="text-align:center;color:var(--grey);padding:20px">Loading invoices...</td></tr></tbody>
@@ -396,8 +395,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
   </div>
 
   <!-- CUSTOMERS / CRM -->
-  <div id="sc-customers" class="sc" style="padding:0">
-  <div style="padding:20px 22px 0">
+  <div id="sc-customers" class="sc">
     <div class="guide">👥 All your past customers in one place. Click any customer to see their job history and re-engage them. Archived jobs appear here too.</div>
     <div class="ph">
       <div><div class="pt">Customers</div><div class="ps2">Past customers, job history, and archived jobs.</div></div>
@@ -406,7 +404,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
       <input class="fi2" id="cust-search" placeholder="Search by name or phone..." oninput="filterCustomers()" style="max-width:280px">
     </div>
     </div>
-    <div class="itbl" style="border-radius:0;border-left:none;border-right:none;border-bottom:none">
+    <div class="itbl">
       <table>
         <thead><tr><th>Customer</th><th>Phone</th><th>Total jobs</th><th>Last job</th><th>Total spent</th><th>Action</th></tr></thead>
         <tbody id="cust-tbody"><tr><td colspan="6" style="text-align:center;color:var(--grey);padding:20px">Loading customers...</td></tr></tbody>
