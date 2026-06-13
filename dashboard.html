@@ -283,7 +283,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
       <button class="btn btn-b" onclick="openAddTech()">+ Add technician</button>
     </div>
     <div class="tg" id="tech-grid"><div style="font-size:13px;color:var(--grey)">Loading...</div></div>
-    <div class="info-bar">💬 When you assign a job, SnapJob sends the technician a WhatsApp with the customer name, address, and job details. They reply to confirm — no app download ever needed.</div>
+    <div class="info-bar">📞 When you assign a job, the technician's phone number appears on the job card. Call or text them directly with the job details. Simple and reliable.</div>
   </div>
 
   <!-- INVOICES -->
@@ -480,7 +480,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
   <div class="dph"><div class="dpt" id="dp-title">Job Details</div><button class="dpx" onclick="closeDp()">✕</button></div>
   <div class="dpb" id="dp-body"><div style="text-align:center;padding:30px;color:var(--grey)">Select a job to view details</div></div>
   <div class="dpf" id="dp-foot" style="display:none">
-    <button class="dpbtn pri" id="assign-btn" onclick="assignJob()">✓ Assign & notify via WhatsApp</button>
+    <button class="dpbtn pri" id="assign-btn" onclick="assignJob()">✓ Assign technician</button>
     <button class="dpbtn sec" onclick="createInvoiceFromJob()">🧾 Create invoice for this job</button>
     <button class="dpbtn sec" onclick="declineJob()" id="decline-btn" style="display:none;color:var(--amber);border-color:rgba(245,158,11,0.3)">↩️ Mark as declined (reassign)</button>
     <button class="dpbtn sec" style="color:var(--red);border-color:rgba(248,113,113,0.3)" onclick="archiveJob()">🗄️ Archive job</button>
@@ -889,10 +889,11 @@ function openJobDetail(job){
     <div><div class="dpl">Address</div><div class="dpv">${job.address||cust?.address||'—'}</div></div>
     <div><div class="dpl">Job description</div><div class="dpv">${job.description||'—'}</div></div>
     <div><div class="dpl">Service type</div><div class="dpv">${job.service_type||'—'}</div></div>
-    ${technicians.length>0?`<div><div class="dpl">Assign technician</div><div class="tec-opts" id="tech-opts">${techOpts||'<div class="dpv m">No technicians added yet</div>'}</div></div>`:'<div><div class="dpl">Technicians</div><div class="dpv m">Add technicians first</div></div>'}`;
+    ${technicians.length>0?`<div><div class="dpl">Assign technician</div><div class="tec-opts" id="tech-opts">${techOpts||'<div class="dpv m">No technicians added yet</div>'}</div></div>`:'<div><div class="dpl">Technicians</div><div class="dpv m">Add technicians first</div></div>'}
+    ${job.technician_id && job.technicians ? `<div><div class="dpl">Technician contact</div><div style="background:var(--bd);border:1px solid var(--bb);border-radius:9px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600;color:var(--white)">${job.technicians.name}</div><div style="font-size:12px;color:var(--grey);margin-top:2px">${job.technicians.phone||'No phone set'}</div></div><a href="tel:${(job.technicians.phone||'').replace(/[^0-9+]/g,'')}" style="background:var(--blue);color:var(--navy);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;text-decoration:none">📞 Call</a></div></div>` : ''}`;
   document.getElementById('dp-foot').style.display='flex';
   const ab=document.getElementById('assign-btn');
-  ab.textContent='✓ Assign & notify via WhatsApp';ab.disabled=false;ab.style.background='';ab.style.color='';
+  ab.textContent='✓ Assign technician';ab.disabled=false;ab.style.background='';ab.style.color='';
   // Show decline button only for assigned jobs (technician hasn't confirmed)
   const declineBtn=document.getElementById('decline-btn');
   if(declineBtn) declineBtn.style.display = job.status==='assigned' ? 'block' : 'none';
@@ -934,11 +935,11 @@ async function assignJob(){
 
   // Format phone — keep country code, remove non-digits
   const rawPhone = (tech?.phone||'').trim();
-  if (!rawPhone) { showToast('Technician has no phone number'); btn.disabled=false; btn.textContent='✓ Assign & notify via WhatsApp'; return; }
+  if (!rawPhone) { showToast('Technician has no phone number'); btn.disabled=false; btn.textContent='✓ Assign technician'; return; }
   // Validate country code present
   if (!rawPhone.startsWith('+')) {
     showToast('Technician phone needs country code e.g. +65 or +60. Edit technician to fix.');
-    btn.disabled=false; btn.textContent='✓ Assign & notify via WhatsApp';
+    btn.disabled=false; btn.textContent='✓ Assign technician';
     await loadJobs(); return;
   }
   const toPhone = rawPhone.replace(/[^0-9]/g,'');
@@ -961,9 +962,9 @@ async function assignJob(){
     console.log('WhatsApp response:', JSON.stringify(waData));
 
     if(waRes.ok && waData.messages){
-      btn.textContent='✓ WhatsApp sent to '+tech?.name;
+      btn.textContent='✓ Assigned — call '+tech?.name+' on '+(tech?.phone||'—');
       btn.style.background='#0d3a20';btn.style.color='var(--emerald)';
-      showToast('Job assigned & WhatsApp sent!');
+      showToast('Job assigned! Call '+tech?.name+' to notify them.');
     } else {
       const errMsg = waData.error?.message || JSON.stringify(waData);
       console.error('WhatsApp error:', errMsg);
