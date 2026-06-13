@@ -135,8 +135,8 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
 /* INVOICES */
 .itbl{background:var(--card);border:1px solid var(--brd);border-radius:12px;overflow:auto;flex:1}
 .itbl table{width:100%;border-collapse:collapse}
-.itbl th{background:var(--card2);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--brd)}
-.itbl td{padding:12px 14px;border-bottom:1px solid var(--brd);font-size:13px}
+.itbl th{background:var(--card2);padding:13px 18px;text-align:left;font-size:12px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--brd)}
+.itbl td{padding:16px 18px;border-bottom:1px solid var(--brd);font-size:14px}
 .itbl tr:last-child td{border-bottom:none}.itbl tr:hover td{background:rgba(255,255,255,.02)}
 .ist{font-size:11px;font-weight:700;padding:3px 8px;border-radius:5px}
 .is-sent{background:var(--bd);color:var(--blue)}.is-paid{background:rgba(52,211,153,.13);color:var(--emerald)}.is-draft{background:rgba(255,255,255,.05);color:var(--grey)}
@@ -251,7 +251,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
   <!-- JOBS -->
   <div id="sc-jobs" class="sc on">
     <div id="trial-banner" style="display:none"></div>
-    <div class="guide">📋 Drag job cards between columns to update their status. Click any card to assign a technician and view full details.</div>
+
     <div class="sg">
       <div class="stat"><div class="sl2">Jobs today</div><div class="sv" id="stat-today">—</div><div class="ss">all statuses</div></div>
       <div class="stat"><div class="sl2">Pending payment</div><div class="sv" id="stat-pending" style="color:var(--amber)">—</div><div class="ss">done, not paid</div></div>
@@ -265,7 +265,7 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
         <button class="btn btn-b btn-sm" onclick="openMo()">+ New job</button>
       </div>
     </div>
-    <div style="height:calc(100vh - 310px);overflow-x:auto">
+    <div style="height:calc(100vh - 270px);overflow-x:auto">
     <div class="kb" style="height:100%">
       <div class="col cn" id="col-new" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'new',this)"><div class="ch"><span class="ct">New</span><span class="cc" id="cnt-new">0</span></div><div class="cb" id="cb-new"><div class="empty-col">No new jobs</div></div></div>
       <div class="col ca" id="col-assigned" ondragover="colDragOver(event,this)" ondragleave="colDragLeave(this)" ondrop="colDrop(event,'assigned',this)"><div class="ch"><span class="ct">Assigned</span><span class="cc" id="cnt-assigned">0</span></div><div class="cb" id="cb-assigned"><div class="empty-col">None assigned</div></div></div>
@@ -1189,7 +1189,12 @@ function timeSince(dateStr){
 }
 function showToast(msg,isActivity){
   const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',3000);
-  if(isActivity&&!feedOpen){document.getElementById('feed-dot').style.display='block';}
+  if(isActivity&&!feedOpen){
+    const dot=document.getElementById('feed-dot');
+    const dotTab=document.getElementById('feed-dot-tab');
+    if(dot)dot.style.display='block';
+    if(dotTab)dotTab.style.display='block';
+  }
 }
 async function signOut(){await sb.auth.signOut();window.location.href='/login.html';}
 
@@ -1385,8 +1390,10 @@ let feedOpen = false;
 function toggleFeed() {
   feedOpen = !feedOpen;
   const panel = document.getElementById('feed-panel');
+  const tab = document.getElementById('feed-tab');
   const btn = document.getElementById('alerts-btn');
   panel.style.transform = feedOpen ? 'none' : 'translateX(100%)';
+  if (tab) tab.style.display = feedOpen ? 'none' : 'flex';
   if (btn) {
     btn.style.background = feedOpen ? 'var(--bd)' : 'var(--card)';
     btn.style.borderColor = feedOpen ? 'var(--blue)' : 'var(--brd)';
@@ -1395,6 +1402,7 @@ function toggleFeed() {
   if (feedOpen) {
     loadActivityFeed();
     document.getElementById('feed-dot').style.display = 'none';
+    document.getElementById('feed-dot-tab').style.display = 'none';
   }
 }
 
