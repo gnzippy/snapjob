@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#090f1e;--navy2:#111827;--blue:#1AABFF;--bd:rgba(26,171,255,0.12);--bb:rgba(26,171,255,0.22);--card:#111c2e;--card2:#162032;--grey:#8899aa;--white:#fff;--brd:rgba(255,255,255,0.07);--amber:#f59e0b;--purple:#a78bfa;--emerald:#34d399;--green:#25D366;--red:#f87171}
-*{box-sizing:border-box;margin:0;padding:0} 
+*{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;display:flex;font-size:14px}
 .sb{width:220px;background:var(--navy2);border-right:1px solid var(--brd);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:10}
 .sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--brd)}
@@ -782,18 +782,21 @@ async function loadInvoices(){
     months.set(key,d.toLocaleDateString('en-SG',{month:'long',year:'numeric'}));
   });
   const sel=document.getElementById('inv-month');
-  const cur=sel.value;
-  sel.innerHTML='<option value="">All time</option>';
-  months.forEach((label,key)=>{const o=document.createElement('option');o.value=key;o.textContent=label;if(key===cur)o.selected=true;sel.appendChild(o);});
-  if(!cur&&sel.options.length>1){
-    const now=new Date();
-    const tm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    for(let o of sel.options){if(o.value===tm){o.selected=true;break;}}
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">All time</option>';
+    months.forEach((label,key)=>{const o=document.createElement('option');o.value=key;o.textContent=label;if(key===cur)o.selected=true;sel.appendChild(o);});
+    if(!cur&&sel.options.length>1){
+      const now=new Date();
+      const tm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      for(let o of sel.options){if(o.value===tm){o.selected=true;break;}}
+    }
   }
   filterInvoices();
 }
 
 function filterInvoices(){
+  if(!document.getElementById('inv-tbody'))return;
   const search=(document.getElementById('inv-search')?.value||'').toLowerCase();
   const month=document.getElementById('inv-month')?.value||'';
   const sf=document.getElementById('inv-status-filter')?.value||'';
@@ -804,12 +807,12 @@ function filterInvoices(){
   const total=filtered.reduce((s,i)=>s+Number(i.total||0),0);
   const paid=filtered.filter(i=>i.status==='paid').reduce((s,i)=>s+Number(i.total||0),0);
   const outstanding=filtered.filter(i=>i.status!=='paid').reduce((s,i)=>s+Number(i.total||0),0);
-  document.getElementById('inv-stat-total').textContent='$'+total.toFixed(2);
-  document.getElementById('inv-stat-paid').textContent='$'+paid.toFixed(2);
-  document.getElementById('inv-stat-outstanding').textContent='$'+outstanding.toFixed(2);
-  document.getElementById('inv-stat-count').textContent=filtered.length;
+  const _t=document.getElementById('inv-stat-total');if(_t)_t.textContent='$'+total.toFixed(2);
+  const _p=document.getElementById('inv-stat-paid');if(_p)_p.textContent='$'+paid.toFixed(2);
+  const _o=document.getElementById('inv-stat-outstanding');if(_o)_o.textContent='$'+outstanding.toFixed(2);
+  const _c=document.getElementById('inv-stat-count');if(_c)_c.textContent=filtered.length;
   const periodLabel=month?new Date(month+'-01').toLocaleDateString('en-SG',{month:'long',year:'numeric'}):'All time';
-  document.getElementById('inv-stat-period').textContent=periodLabel;
+  const _pe=document.getElementById('inv-stat-period');if(_pe)_pe.textContent=periodLabel;
   const tbody=document.getElementById('inv-tbody');
   if(filtered.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--grey);padding:20px">No invoices found</td></tr>';return;}
   tbody.innerHTML=filtered.map((inv)=>{
@@ -1315,6 +1318,7 @@ function newJobForCustomer(custId, name, phone, addr) {
 async function loadActivityFeed() {
   if (!currentBusiness) return;
   const feed = document.getElementById('activity-feed');
+  if (!feed) return;
   const { data: jobs } = await sb.from('jobs')
     .select('*, customers(name), technicians(name)')
     .eq('business_id', currentBusiness.id)
