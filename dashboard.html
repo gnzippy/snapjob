@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,12 +22,12 @@ body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);
 .sb-foot{padding:10px 8px;border-top:1px solid var(--brd)}
 .plan-box{background:var(--bd);border:1px solid var(--bb);border-radius:8px;padding:9px 11px;margin-bottom:7px}
 .plan-box p{font-size:11px;color:var(--blue);font-weight:600}.plan-box span{font-size:10px;color:var(--grey)}
-.main{margin-left:220px;flex:1;display:block;min-height:100vh}
+.main{width:calc(100vw - 220px);min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
 .topbar{background:var(--navy2);border-bottom:1px solid var(--brd);padding:12px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .tb-title{font-family:'Poppins',sans-serif;font-size:17px;font-weight:800}
 .tb-right{display:flex;align-items:center;gap:9px}
 .av{width:32px;height:32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer}
-.sc{display:none;padding:20px 22px;overflow-y:auto}.sc.on{display:block;min-height:calc(100vh - 57px)}
+.sc{display:none;padding:20px 22px;overflow-y:auto;flex:1;width:100%}.sc.on{display:flex;flex-direction:column;min-height:0}
 
 /* GUIDE HINT */
 .guide{font-size:12px;color:var(--grey);background:var(--card);border-left:3px solid var(--blue);border-radius:0 7px 7px 0;padding:8px 12px;margin-bottom:16px;line-height:1.5}
@@ -1254,7 +1253,7 @@ async function loadCustomers() {
   if (!currentBusiness) return;
   // Load customers and jobs separately to avoid foreign key issues
   const { data: custs } = await sb.from('customers').select('*').eq('business_id', currentBusiness.id).order('created_at', { ascending: false });
-  const { data: jobs } = await sb.from('jobs').select('id,customer_id,status,created_at,total').eq('business_id', currentBusiness.id);
+  const { data: jobs } = await sb.from('jobs').select('id,customer_id,status,created_at').eq('business_id', currentBusiness.id);
   
   // Attach jobs to customers
   allCustomers = (custs || []).map(cust => ({
