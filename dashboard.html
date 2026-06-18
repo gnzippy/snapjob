@@ -1127,6 +1127,8 @@ function show(id,btn){
   document.getElementById('tb-title').textContent=titles[id]||id;
   closeDp();
   if(id==='customers') loadCustomers();
+  if(id==='technicians') loadTechnicians();
+  if(id==='invoices') loadInvoices();
 }
 function openDp(){document.getElementById('dp').classList.add('open');}
 function closeDp(){document.getElementById('dp').classList.remove('open');}
