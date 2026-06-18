@@ -1119,7 +1119,7 @@ async function uploadImage(file,type){
 
 // UI helpers
 const titles={jobs:'Job Board',technicians:'Technicians',invoices:'Invoices','create-invoice':'Create Invoice',customers:'Customers & CRM',settings:'Settings'};
-function show(id,btn){
+function show(id,btn){   document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));   document.getElementById('sc-'+id).classList.add('on');   if(btn)btn.classList.add('on');   document.getElementById('tb-title').textContent=titles[id]||id;   closeDp();   if(id==='technicians'&&currentBusiness) setTimeout(()=>loadTechnicians(),100);   if(id==='invoices'&&currentBusiness) setTimeout(()=>loadInvoices(),100);   if(id==='customers'&&currentBusiness) setTimeout(()=>loadCustomers(),100); }
   document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
   document.getElementById('sc-'+id).classList.add('on');
