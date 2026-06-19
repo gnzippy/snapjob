@@ -182,7 +182,7 @@
 
   .board {
     display: grid;
-    grid-template-columns: repeat(5, minmax(230px, 1fr));
+    grid-template-columns: repeat(4, minmax(230px, 1fr));
     gap: 14px;
     overflow-x: auto;
     padding-bottom: 8px;
@@ -491,6 +491,9 @@
       <button class="nav-item" data-page="customers" onclick="goTo('customers')">
         <span class="nav-icon">👥</span><span class="nav-text">Customers</span>
       </button>
+      <button class="nav-item" data-page="archive" onclick="goTo('archive')">
+        <span class="nav-icon">🗄</span><span class="nav-text">Archive</span>
+      </button>
       <button class="nav-item" data-page="settings" onclick="goTo('settings')">
         <span class="nav-icon">⚙</span><span class="nav-text">Settings</span>
       </button>
@@ -612,18 +615,8 @@
             </div>
           </div>
 
-          <div class="col" data-status="paid">
-            <div class="col-head"><span>Paid</span><span class="col-count">1</span></div>
-            <div class="card" onclick="openPanel('AC installation', 'Chong family · Sengkang Sq')">
-              <div class="card-title">AC installation</div>
-              <div class="card-sub">Chong family · Sengkang Sq</div>
-              <div class="card-foot">
-                <span class="card-tech"><span class="tech-dot">RK</span>Rajan K.</span>
-                <span class="card-amount num">$420</span>
-              </div>
-            </div>
-          </div>
         </div>
+        <p style="font-size:12.5px; color:var(--slate); margin-top:14px;">Paid jobs move automatically to the <a href="#" onclick="goTo('archive'); return false;" style="color:var(--blue); font-weight:600;">Archive</a> and drop off this board.</p>
       </div>
 
       <!-- ============ PAGE: TECHNICIANS ============ -->
@@ -669,10 +662,15 @@
       <div class="page" id="page-invoices">
         <div class="page-header">
           <h1>Invoices</h1>
-          <button class="btn-primary" onclick="alert('New invoice form goes here.')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            New invoice
-          </button>
+          <div style="display:flex; gap:10px;">
+            <button class="mini-btn" onclick="exportTableToExcel('invoicesTable', 'invoices.xlsx')">
+              ⬇ Export to Excel
+            </button>
+            <button class="btn-primary" onclick="alert('New invoice form goes here.')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              New invoice
+            </button>
+          </div>
         </div>
         <div class="invoice-toolbar">
           <input class="search-input" placeholder="Search invoice # or customer name">
@@ -680,7 +678,7 @@
           <select class="select-input"><option>All statuses</option><option>Paid</option><option>Unpaid</option><option>Overdue</option></select>
         </div>
         <div class="table-card">
-          <table>
+          <table id="invoicesTable">
             <thead><tr><th>Invoice #</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
             <tbody>
               <tr class="row-clickable">
@@ -716,12 +714,15 @@
       <div class="page" id="page-customers">
         <div class="page-header">
           <h1>Customers</h1>
+          <button class="mini-btn" onclick="exportTableToExcel('customersTable', 'customers.xlsx')">
+            ⬇ Export to Excel
+          </button>
         </div>
         <div class="search-row">
           <input class="search-input" placeholder="Search customers">
         </div>
         <div class="table-card">
-          <table>
+          <table id="customersTable">
             <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Past jobs</th><th>Lifetime value</th></tr></thead>
             <tbody>
               <tr class="row-clickable">
@@ -750,6 +751,52 @@
         </div>
       </div>
 
+      <!-- ============ PAGE: ARCHIVE ============ -->
+      <div class="page" id="page-archive">
+        <div class="page-header">
+          <h1>Archive</h1>
+          <button class="mini-btn" onclick="exportTableToExcel('archiveTable', 'paid-jobs-archive.xlsx')">
+            ⬇ Export to Excel
+          </button>
+        </div>
+        <p style="font-size:13px; color:var(--ink-soft); margin:-6px 0 16px;">Jobs marked <strong>Paid</strong> land here automatically and are kept permanently, even after they leave the Jobs board.</p>
+        <div class="search-row">
+          <input class="search-input" placeholder="Search archived jobs">
+          <select class="select-input"><option>All time</option><option>This month</option><option>Last month</option><option>This year</option></select>
+        </div>
+        <div class="table-card">
+          <table id="archiveTable">
+            <thead><tr><th>Job</th><th>Customer</th><th>Technician</th><th>Date paid</th><th>Amount</th><th>Invoice #</th></tr></thead>
+            <tbody>
+              <tr class="row-clickable">
+                <td>AC installation</td>
+                <td>Chong family</td>
+                <td>Rajan K.</td>
+                <td>12 Jun 2026</td>
+                <td class="num">$420.00</td>
+                <td class="num">INV-0042</td>
+              </tr>
+              <tr class="row-clickable">
+                <td>Aircon servicing — 2 units</td>
+                <td>Lee Family</td>
+                <td>Jun Le T.</td>
+                <td>3 May 2026</td>
+                <td class="num">$160.00</td>
+                <td class="num">INV-0038</td>
+              </tr>
+              <tr class="row-clickable">
+                <td>Pipe replacement</td>
+                <td>Mei Ling</td>
+                <td>Jun Le T.</td>
+                <td>14 Apr 2026</td>
+                <td class="num">$180.00</td>
+                <td class="num">INV-0031</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- ============ PAGE: SETTINGS ============ -->
       <div class="page" id="page-settings">
         <div class="page-header"><h1>Settings</h1></div>
@@ -757,8 +804,15 @@
           <div class="settings-card">
             <h3>Business details</h3>
             <div class="field"><label>Business name</label><input value="Cool Air Aircon Services"></div>
+            <div class="field"><label>UEN</label><input value="201912345A" placeholder="e.g. 201912345A" maxlength="10"></div>
             <div class="field"><label>Contact phone</label><input value="+65 9123 4567"></div>
             <div class="field"><label>Address</label><input value="Blk 123 Ang Mo Kio Ave 3"></div>
+            <div class="field">
+              <label>Postal code <span style="color:var(--red);">*</span></label>
+              <input id="postalCode" value="560123" maxlength="6" inputmode="numeric" required oninput="this.value=this.value.replace(/[^0-9]/g,'')" onblur="validatePostalCode(this)">
+              <div id="postalError" style="display:none; color:var(--red); font-size:11.5px; margin-top:4px;">Postal code is required and must be 6 digits.</div>
+            </div>
+            <button class="save-btn" onclick="saveBusinessDetails()">Save changes</button>
           </div>
           <div class="settings-card">
             <h3>Branding</h3>
@@ -867,13 +921,14 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
   function goTo(page) {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(`page-${page}`).classList.add('active');
-    const titles = { board: 'Jobs', technicians: 'Technicians', invoices: 'Invoices', customers: 'Customers', settings: 'Settings' };
+    const titles = { board: 'Jobs', technicians: 'Technicians', invoices: 'Invoices', customers: 'Customers', archive: 'Archive', settings: 'Settings' };
     document.getElementById('topbarTitle').textContent = titles[page];
   }
 
@@ -896,6 +951,29 @@
     document.getElementById('jobPanel').classList.remove('open');
     document.getElementById('panelOverlay').classList.remove('open');
   }
+
+  function exportTableToExcel(tableId, filename) {
+    const table = document.getElementById(tableId);
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+    XLSX.writeFile(wb, filename);
+  }
+
+  function validatePostalCode(input) {
+    const errorEl = document.getElementById('postalError');
+    const valid = /^\d{6}$/.test(input.value.trim());
+    errorEl.style.display = valid ? 'none' : 'block';
+    return valid;
+  }
+
+  function saveBusinessDetails() {
+    const postal = document.getElementById('postalCode');
+    if (!validatePostalCode(postal)) {
+      postal.focus();
+      return;
+    }
+    alert('Business details saved.');
+  }
+
 </script>
 
 </body>
