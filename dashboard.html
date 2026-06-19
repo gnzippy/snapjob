@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SnapJob — Job Management Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <style>
   :root {
     --ink: #0F172A;
@@ -230,7 +232,9 @@
   .col[data-status="done"] .card { border-left-color: #0EA5A0; }
   .col[data-status="paid"] .card { border-left-color: var(--green); }
 
-  .card-title { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
+  .card-list { min-height: 60px; }
+  .card { cursor: grab; }
+  .card:active { cursor: grabbing; }
   .card-sub { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; }
   .card-foot { display: flex; align-items: center; justify-content: space-between; }
   .card-tech {
@@ -466,11 +470,75 @@
   }
 
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  /* ---------- LOGIN SCREEN ---------- */
+  .login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--ink); padding: 20px;
+  }
+  .login-card {
+    background: var(--surface); border-radius: 16px; padding: 36px 32px;
+    width: 100%; max-width: 380px; box-shadow: var(--shadow-lg);
+  }
+  .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; font-weight: 800; font-size: 19px; }
+  .login-card h2 { font-size: 17px; margin: 0 0 4px; }
+  .login-card .sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 22px; }
+  .login-field { margin-bottom: 12px; }
+  .login-field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .login-field input {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size: 13.5px; font-family: inherit;
+  }
+  .login-field input:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+  .login-submit {
+    width: 100%; background: var(--blue); color: #fff; border: none;
+    padding: 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 700;
+    margin-top: 4px;
+  }
+  .login-toggle { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-top: 16px; }
+  .login-toggle a { color: var(--blue); font-weight: 600; }
+  .login-error { background: var(--red-soft); color: var(--red); font-size: 12.5px; padding: 9px 12px; border-radius: var(--radius-sm); margin-bottom: 14px; display: none; }
+  .login-loading { text-align: center; color: var(--slate); font-size: 13px; padding: 40px 0; }
+  .hidden { display: none !important; }
+  .sortable-ghost { opacity: 0.4; }
+  .sortable-drag { box-shadow: var(--shadow-lg) !important; }
+
 </style>
 </head>
 <body>
 
-<div class="app">
+<!-- ============ CONFIG ============ -->
+<!-- Paste your Supabase project URL and anon key here after running schema.sql -->
+<script>
+  const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-mark">S</div>
+      <span>SnapJob</span>
+    </div>
+    <h2 id="loginTitle">Log in to your dashboard</h2>
+    <div class="sub" id="loginSub">Manage your jobs, technicians, and invoices.</div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@business.com"></div>
+    <div class="login-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+    <button class="login-submit" id="loginSubmitBtn" onclick="submitEmailAuth()">Log in</button>
+
+    <div class="login-toggle" id="loginToggle">
+      Don't have an account? <a href="#" onclick="toggleAuthMode(); return false;">Sign up</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP (hidden until logged in) ============ -->
+<div class="app hidden" id="appRoot">
 
   <!-- ============ SIDEBAR ============ -->
   <nav class="sidebar">
@@ -515,7 +583,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="alert-dot"></span>
         </button>
-        <div class="avatar">CO</div>
+        <div class="avatar" id="userAvatar">CO</div>
+        <button class="mini-btn" onclick="logout()" style="margin-left:4px;">Log out</button>
       </div>
     </div>
 
@@ -534,7 +603,7 @@
       <div class="page active" id="page-board">
         <div class="board-header">
           <h1>Jobs</h1>
-          <button class="btn-primary" onclick="alert('New job form goes here.')">
+          <button class="btn-primary" onclick="openNewJob()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             New job
           </button>
@@ -542,79 +611,21 @@
 
         <div class="board">
           <div class="col" data-status="new">
-            <div class="col-head"><span>New</span><span class="col-count">2</span></div>
-            <div class="card" onclick="openPanel('AC servicing — 3 units', 'Mrs. Tan · Block 412 Yishun St 11')">
-              <div class="card-title">AC servicing — 3 units</div>
-              <div class="card-sub">Mrs. Tan · Yishun St 11</div>
-              <div class="card-foot">
-                <span class="card-tech card-unassigned">Unassigned</span>
-                <button class="card-call" onclick="event.stopPropagation()" aria-label="Call customer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="card" onclick="openPanel('Leak repair', 'David Lim · Punggol Walk')">
-              <div class="card-title">Leak repair</div>
-              <div class="card-sub">David Lim · Punggol Walk</div>
-              <div class="card-foot">
-                <span class="card-tech card-unassigned">Unassigned</span>
-                <button class="card-call" onclick="event.stopPropagation()" aria-label="Call customer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                </button>
-              </div>
-            </div>
+            <div class="col-head"><span>New</span><span class="col-count" id="count-new">0</span></div>
+            <div class="card-list" id="col-new" data-status="new"></div>
           </div>
-
           <div class="col" data-status="assigned">
-            <div class="col-head"><span>Assigned</span><span class="col-count">2</span></div>
-            <div class="card" onclick="openPanel('Gas top-up', 'Siti Rahman · Tampines Ave 4')">
-              <div class="card-title">Gas top-up</div>
-              <div class="card-sub">Siti Rahman · Tampines Ave 4</div>
-              <div class="card-foot">
-                <span class="card-tech"><span class="tech-dot">RK</span>Rajan K.</span>
-                <button class="card-call" onclick="event.stopPropagation()" aria-label="Call customer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="card" onclick="openPanel('General servicing', 'Wong Family · Bishan St 22')">
-              <div class="card-title">General servicing</div>
-              <div class="card-sub">Wong Family · Bishan St 22</div>
-              <div class="card-foot">
-                <span class="card-tech"><span class="tech-dot">JL</span>Jun Le</span>
-                <button class="card-call" onclick="event.stopPropagation()" aria-label="Call customer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                </button>
-              </div>
-            </div>
+            <div class="col-head"><span>Assigned</span><span class="col-count" id="count-assigned">0</span></div>
+            <div class="card-list" id="col-assigned" data-status="assigned"></div>
           </div>
-
           <div class="col" data-status="progress">
-            <div class="col-head"><span>In Progress</span><span class="col-count">1</span></div>
-            <div class="card" onclick="openPanel('Aircon not cooling', 'Mr. Hassan · Jurong West St 64')">
-              <div class="card-title">Aircon not cooling</div>
-              <div class="card-sub">Mr. Hassan · Jurong West St 64</div>
-              <div class="card-foot">
-                <span class="card-tech"><span class="tech-dot">RK</span>Rajan K.</span>
-                <button class="card-call" onclick="event.stopPropagation()" aria-label="Call customer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                </button>
-              </div>
-            </div>
+            <div class="col-head"><span>In Progress</span><span class="col-count" id="count-progress">0</span></div>
+            <div class="card-list" id="col-progress" data-status="progress"></div>
           </div>
-
           <div class="col" data-status="done">
-            <div class="col-head"><span>Done</span><span class="col-count">1</span></div>
-            <div class="card" onclick="openPanel('Pipe replacement', 'Mei Ling · Toa Payoh Lor 4')">
-              <div class="card-title">Pipe replacement</div>
-              <div class="card-sub">Mei Ling · Toa Payoh Lor 4</div>
-              <div class="card-foot">
-                <span class="card-tech"><span class="tech-dot">JL</span>Jun Le</span>
-                <span class="card-amount num">$180</span>
-              </div>
-            </div>
+            <div class="col-head"><span>Done</span><span class="col-count" id="count-done">0</span></div>
+            <div class="card-list" id="col-done" data-status="done"></div>
           </div>
-
         </div>
         <p style="font-size:12.5px; color:var(--slate); margin-top:14px;">Paid jobs move automatically to the <a href="#" onclick="goTo('archive'); return false;" style="color:var(--blue); font-weight:600;">Archive</a> and drop off this board.</p>
       </div>
@@ -623,7 +634,7 @@
       <div class="page" id="page-technicians">
         <div class="page-header">
           <h1>Technicians</h1>
-          <button class="btn-primary" onclick="alert('Add technician form goes here.')">
+          <button class="btn-primary" onclick="openAddTechnician()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             Add technician
           </button>
@@ -631,28 +642,8 @@
         <div class="table-card">
           <table>
             <thead><tr><th>Name</th><th>Phone</th><th>Active jobs</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              <tr class="row-clickable">
-                <td><div class="name-cell"><span class="row-avatar">RK</span>Rajan Kumar</div></td>
-                <td><a class="phone-link num" href="tel:+6591234567">+65 9123 4567</a></td>
-                <td class="num">2</td>
-                <td><span class="pill pill-active">Active</span></td>
-                <td><div class="row-actions"><button class="mini-btn">Edit</button></div></td>
-              </tr>
-              <tr class="row-clickable">
-                <td><div class="name-cell"><span class="row-avatar">JL</span>Jun Le Tan</div></td>
-                <td><a class="phone-link num" href="tel:+6598765432">+65 9876 5432</a></td>
-                <td class="num">2</td>
-                <td><span class="pill pill-active">Active</span></td>
-                <td><div class="row-actions"><button class="mini-btn">Edit</button></div></td>
-              </tr>
-              <tr class="row-clickable">
-                <td><div class="name-cell"><span class="row-avatar">MF</span>Muhd Faiz</div></td>
-                <td><a class="phone-link num" href="tel:+6590001111">+65 9000 1111</a></td>
-                <td class="num">0</td>
-                <td><span class="pill pill-active">Active</span></td>
-                <td><div class="row-actions"><button class="mini-btn">Edit</button></div></td>
-              </tr>
+            <tbody id="techniciansBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -680,31 +671,8 @@
         <div class="table-card">
           <table id="invoicesTable">
             <thead><tr><th>Invoice #</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              <tr class="row-clickable">
-                <td class="num">INV-0042</td>
-                <td>Chong family</td>
-                <td>12 Jun 2026</td>
-                <td class="num">$420.00</td>
-                <td><span class="pill pill-paid">Paid</span></td>
-                <td><div class="row-actions"><button class="mini-btn">Print</button></div></td>
-              </tr>
-              <tr class="row-clickable">
-                <td class="num">INV-0041</td>
-                <td>Mei Ling</td>
-                <td>10 Jun 2026</td>
-                <td class="num">$180.00</td>
-                <td><span class="pill pill-unpaid">Unpaid</span></td>
-                <td><div class="row-actions"><button class="mini-btn">Print</button></div></td>
-              </tr>
-              <tr class="row-clickable">
-                <td class="num">INV-0040</td>
-                <td>Mr. Hassan</td>
-                <td>28 May 2026</td>
-                <td class="num">$95.00</td>
-                <td><span class="pill pill-overdue">Overdue</span></td>
-                <td><div class="row-actions"><button class="mini-btn">Print</button></div></td>
-              </tr>
+            <tbody id="invoicesBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -724,28 +692,8 @@
         <div class="table-card">
           <table id="customersTable">
             <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Past jobs</th><th>Lifetime value</th></tr></thead>
-            <tbody>
-              <tr class="row-clickable">
-                <td><div class="name-cell"><span class="row-avatar">CF</span>Chong family</div></td>
-                <td><a class="phone-link num" href="tel:+6592223333">+65 9222 3333</a></td>
-                <td>Sengkang Sq</td>
-                <td class="num">3</td>
-                <td class="num">$960.00</td>
-              </tr>
-              <tr class="row-clickable">
-                <td><div class="name-cell"><span class="row-avatar">ML</span>Mei Ling</div></td>
-                <td><a class="phone-link num" href="tel:+6593334444">+65 9333 4444</a></td>
-                <td>Toa Payoh Lor 4</td>
-                <td class="num">1</td>
-                <td class="num">$180.00</td>
-              </tr>
-              <tr class="row-clickable">
-                <td><div class="name-cell"><span class="row-avatar">MH</span>Mr. Hassan</div></td>
-                <td><a class="phone-link num" href="tel:+6594445555">+65 9444 5555</a></td>
-                <td>Jurong West St 64</td>
-                <td class="num">2</td>
-                <td class="num">$215.00</td>
-              </tr>
+            <tbody id="customersBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -767,31 +715,8 @@
         <div class="table-card">
           <table id="archiveTable">
             <thead><tr><th>Job</th><th>Customer</th><th>Technician</th><th>Date paid</th><th>Amount</th><th>Invoice #</th></tr></thead>
-            <tbody>
-              <tr class="row-clickable">
-                <td>AC installation</td>
-                <td>Chong family</td>
-                <td>Rajan K.</td>
-                <td>12 Jun 2026</td>
-                <td class="num">$420.00</td>
-                <td class="num">INV-0042</td>
-              </tr>
-              <tr class="row-clickable">
-                <td>Aircon servicing — 2 units</td>
-                <td>Lee Family</td>
-                <td>Jun Le T.</td>
-                <td>3 May 2026</td>
-                <td class="num">$160.00</td>
-                <td class="num">INV-0038</td>
-              </tr>
-              <tr class="row-clickable">
-                <td>Pipe replacement</td>
-                <td>Mei Ling</td>
-                <td>Jun Le T.</td>
-                <td>14 Apr 2026</td>
-                <td class="num">$180.00</td>
-                <td class="num">INV-0031</td>
-              </tr>
+            <tbody id="archiveBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -803,13 +728,13 @@
         <div class="settings-grid">
           <div class="settings-card">
             <h3>Business details</h3>
-            <div class="field"><label>Business name</label><input value="Cool Air Aircon Services"></div>
-            <div class="field"><label>UEN</label><input value="201912345A" placeholder="e.g. 201912345A" maxlength="10"></div>
-            <div class="field"><label>Contact phone</label><input value="+65 9123 4567"></div>
-            <div class="field"><label>Address</label><input value="Blk 123 Ang Mo Kio Ave 3"></div>
+            <div class="field"><label>Business name</label><input id="bizName" value=""></div>
+            <div class="field"><label>UEN</label><input id="bizUen" value="" placeholder="e.g. 201912345A" maxlength="10"></div>
+            <div class="field"><label>Contact phone</label><input id="bizPhone" value=""></div>
+            <div class="field"><label>Address</label><input id="bizAddress" value=""></div>
             <div class="field">
               <label>Postal code <span style="color:var(--red);">*</span></label>
-              <input id="postalCode" value="560123" maxlength="6" inputmode="numeric" required oninput="this.value=this.value.replace(/[^0-9]/g,'')" onblur="validatePostalCode(this)">
+              <input id="postalCode" value="" maxlength="6" inputmode="numeric" required oninput="this.value=this.value.replace(/[^0-9]/g,'')" onblur="validatePostalCode(this)">
               <div id="postalError" style="display:none; color:var(--red); font-size:11.5px; margin-top:4px;">Postal code is required and must be 6 digits.</div>
             </div>
             <button class="save-btn" onclick="saveBusinessDetails()">Save changes</button>
@@ -828,9 +753,9 @@
           <div class="settings-card full">
             <h3>Invoice footer text</h3>
             <div class="field">
-              <textarea rows="3">Thank you for your business! Payment due within 7 days. For queries, call +65 9123 4567.</textarea>
+              <textarea id="bizFooter" rows="3"></textarea>
             </div>
-            <button class="save-btn">Save changes</button>
+            <button class="save-btn" onclick="saveInvoiceFooter()">Save changes</button>
           </div>
         </div>
       </div>
@@ -882,47 +807,545 @@
   </div>
   <div class="panel-body">
     <div class="panel-section">
-      <h4>Customer</h4>
+      <h4>Job title</h4>
+      <input id="panelJobTitle" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="e.g. AC servicing — 2 units">
+    </div>
+    <div class="panel-section">
+      <h4>Customer name</h4>
+      <input id="panelCustomerName" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit; margin-bottom:8px;" placeholder="Customer name">
       <div class="panel-row">
-        <span class="label num">+65 9123 4567</span>
-        <button class="call-btn">
+        <input id="panelCustomerPhone" class="num" style="flex:1; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="+65 9123 4567">
+        <button class="call-btn" id="panelCallBtn" onclick="callCustomer()" style="margin-left:8px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          Call now
+          Call
         </button>
       </div>
     </div>
     <div class="panel-section">
+      <h4>Amount ($)</h4>
+      <input id="panelAmount" class="num" type="number" step="0.01" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="0.00">
+    </div>
+    <div class="panel-section">
       <h4>Assign technician</h4>
-      <select class="status-select tech-select">
-        <option>Unassigned</option>
-        <option>Rajan Kumar</option>
-        <option>Jun Le Tan</option>
-        <option>Muhd Faiz</option>
+      <select class="status-select tech-select" id="panelTechnician">
+        <option value="">Unassigned</option>
       </select>
     </div>
     <div class="panel-section">
       <h4>Status</h4>
-      <select class="status-select">
-        <option>New</option>
-        <option>Assigned</option>
-        <option>In Progress</option>
-        <option>Done</option>
-        <option>Paid</option>
+      <select class="status-select" id="panelStatus">
+        <option value="new">New</option>
+        <option value="assigned">Assigned</option>
+        <option value="progress">In Progress</option>
+        <option value="done">Done</option>
+        <option value="paid">Paid</option>
       </select>
     </div>
     <div class="panel-section">
       <h4>Job notes</h4>
-      <textarea rows="3" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="Add notes about this job..."></textarea>
+      <textarea id="panelNotes" rows="3" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="Add notes about this job..."></textarea>
     </div>
   </div>
   <div class="panel-footer">
     <button class="btn-ghost" onclick="closePanel()">Cancel</button>
-    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="closePanel()">Save changes</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="saveJob()">Save changes</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ============ ADD TECHNICIAN MODAL ============ -->
+<div class="panel-overlay" id="techModalOverlay" onclick="closeAddTechnician()"></div>
+<div class="panel" id="techModal" style="width:380px;">
+  <div class="panel-head">
+    <h2>Add technician</h2>
+    <button class="drawer-close" onclick="closeAddTechnician()" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-section">
+      <h4>Name</h4>
+      <input id="techName" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="Full name">
+    </div>
+    <div class="panel-section">
+      <h4>Phone</h4>
+      <input id="techPhone" class="num" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="+65 9123 4567">
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn-ghost" onclick="closeAddTechnician()">Cancel</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="saveTechnician()">Add technician</button>
+  </div>
+</div>
+
 <script>
+  // ============================================================
+  // STATE
+  // ============================================================
+  let currentBusiness = null;   // the business row for the logged-in user
+  let technicians = [];         // cached list for dropdowns
+  let jobsCache = [];           // cached jobs for the board
+  let authMode = 'login';       // 'login' | 'signup'
+
+  // ============================================================
+  // AUTH
+  // ============================================================
+  function toggleAuthMode() {
+    authMode = authMode === 'login' ? 'signup' : 'login';
+    document.getElementById('loginTitle').textContent = authMode === 'login' ? 'Log in to your dashboard' : 'Create your account';
+    document.getElementById('loginSubmitBtn').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+    document.getElementById('loginToggle').innerHTML = authMode === 'login'
+      ? `Don't have an account? <a href="#" onclick="toggleAuthMode(); return false;">Sign up</a>`
+      : `Already have an account? <a href="#" onclick="toggleAuthMode(); return false;">Log in</a>`;
+    hideLoginError();
+  }
+
+  function showLoginError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function hideLoginError() {
+    document.getElementById('loginError').style.display = 'none';
+  }
+
+  async function submitEmailAuth() {
+    hideLoginError();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showLoginError('Enter your email and password.'); return; }
+
+    if (authMode === 'login') {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) showLoginError(error.message);
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) showLoginError(error.message);
+      else showLoginError("Account created — check your email to confirm, then log in.");
+    }
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+  }
+
+  // Called on page load and whenever auth state changes
+  async function handleAuthState(session) {
+    if (!session) {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('appRoot').classList.add('hidden');
+      return;
+    }
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appRoot').classList.remove('hidden');
+
+    const email = session.user.email || '';
+    document.getElementById('userAvatar').textContent = email.slice(0, 2).toUpperCase();
+
+    await loadCurrentBusiness();
+    await loadAllData();
+  }
+
+  supabase.auth.onAuthStateChange((_event, session) => handleAuthState(session));
+  supabase.auth.getSession().then(({ data }) => handleAuthState(data.session));
+
+  // ============================================================
+  // LOAD CURRENT BUSINESS  (the "currentBusiness" gating object)
+  // ============================================================
+  async function loadCurrentBusiness() {
+    const { data, error } = await supabase.from('businesses').select('*').single();
+    if (error) {
+      console.error('Failed to load business:', error);
+      return;
+    }
+    currentBusiness = data;
+    populateSettingsForm();
+    updateTrialBanner();
+  }
+
+  function populateSettingsForm() {
+    if (!currentBusiness) return;
+    document.getElementById('bizName').value = currentBusiness.name || '';
+    document.getElementById('bizUen').value = currentBusiness.uen || '';
+    document.getElementById('bizPhone').value = currentBusiness.phone || '';
+    document.getElementById('bizAddress').value = currentBusiness.address || '';
+    document.getElementById('postalCode').value = currentBusiness.postal_code || '';
+    document.getElementById('bizFooter').value = currentBusiness.invoice_footer || '';
+  }
+
+  function updateTrialBanner() {
+    if (!currentBusiness) return;
+    const started = new Date(currentBusiness.trial_started_at);
+    const daysUsed = Math.floor((Date.now() - started.getTime()) / 86400000);
+    const daysLeft = Math.max(0, 90 - daysUsed);
+    document.querySelector('#trialBanner .banner-left span strong').textContent = `${daysLeft} days left`;
+    document.querySelector('.trial-card strong').textContent = `Free trial — Day ${Math.min(daysUsed, 90)} of 90`;
+    document.querySelector('.trial-bar-fill').style.width = `${Math.min(100, (daysUsed / 90) * 100)}%`;
+  }
+
+  // ============================================================
+  // LOAD ALL DATA
+  // ============================================================
+  async function loadAllData() {
+    await Promise.all([loadTechnicians(), loadJobs(), loadCustomers(), loadInvoices(), loadArchive()]);
+    initDragAndDrop();
+  }
+
+  // ---------- TECHNICIANS ----------
+  async function loadTechnicians() {
+    const { data, error } = await supabase.from('technicians').select('*').order('name');
+    if (error) { console.error(error); return; }
+    technicians = data || [];
+    renderTechnicians();
+    populateTechnicianDropdown();
+  }
+
+  function initials(name) {
+    return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  function renderTechnicians() {
+    const body = document.getElementById('techniciansBody');
+    if (!technicians.length) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">No technicians yet. Click "Add technician" to get started.</td></tr>`;
+      return;
+    }
+    body.innerHTML = technicians.map(t => {
+      const activeJobs = jobsCache.filter(j => j.technician_id === t.id && j.status !== 'paid').length;
+      return `
+        <tr class="row-clickable">
+          <td><div class="name-cell"><span class="row-avatar">${initials(t.name)}</span>${escapeHtml(t.name)}</div></td>
+          <td><a class="phone-link num" href="tel:${escapeHtml(t.phone)}">${escapeHtml(t.phone)}</a></td>
+          <td class="num">${activeJobs}</td>
+          <td><span class="pill pill-active">${t.active ? 'Active' : 'Inactive'}</span></td>
+          <td><div class="row-actions"><button class="mini-btn" onclick="toggleTechnicianActive('${t.id}', ${t.active})">${t.active ? 'Deactivate' : 'Activate'}</button></div></td>
+        </tr>`;
+    }).join('');
+  }
+
+  function populateTechnicianDropdown() {
+    const select = document.getElementById('panelTechnician');
+    select.innerHTML = '<option value="">Unassigned</option>' +
+      technicians.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  }
+
+  function openAddTechnician() {
+    document.getElementById('techName').value = '';
+    document.getElementById('techPhone').value = '';
+    document.getElementById('techModal').classList.add('open');
+    document.getElementById('techModalOverlay').classList.add('open');
+  }
+  function closeAddTechnician() {
+    document.getElementById('techModal').classList.remove('open');
+    document.getElementById('techModalOverlay').classList.remove('open');
+  }
+  async function saveTechnician() {
+    const name = document.getElementById('techName').value.trim();
+    const phone = document.getElementById('techPhone').value.trim();
+    if (!name || !phone) { alert('Name and phone are required.'); return; }
+    const { error } = await supabase.from('technicians').insert({
+      business_id: currentBusiness.id, name, phone
+    });
+    if (error) { alert('Could not save technician: ' + error.message); return; }
+    closeAddTechnician();
+    await loadTechnicians();
+  }
+  async function toggleTechnicianActive(id, currentlyActive) {
+    const { error } = await supabase.from('technicians').update({ active: !currentlyActive }).eq('id', id);
+    if (error) { alert('Update failed: ' + error.message); return; }
+    await loadTechnicians();
+  }
+
+  // ---------- JOBS / KANBAN ----------
+  async function loadJobs() {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*, customers(name, phone, address)')
+      .neq('status', 'paid')
+      .order('board_position');
+    if (error) { console.error(error); return; }
+    jobsCache = data || [];
+    renderBoard();
+  }
+
+  function renderBoard() {
+    const statuses = ['new', 'assigned', 'progress', 'done'];
+    statuses.forEach(status => {
+      const col = document.getElementById(`col-${status}`);
+      const jobsInCol = jobsCache.filter(j => j.status === status);
+      document.getElementById(`count-${status}`).textContent = jobsInCol.length;
+      col.innerHTML = jobsInCol.map(j => renderJobCard(j)).join('');
+    });
+  }
+
+  function renderJobCard(job) {
+    const customer = job.customers || {};
+    const tech = technicians.find(t => t.id === job.technician_id);
+    const techHtml = tech
+      ? `<span class="card-tech"><span class="tech-dot">${initials(tech.name)}</span>${escapeHtml(tech.name.split(' ')[0])}</span>`
+      : `<span class="card-tech card-unassigned">Unassigned</span>`;
+    const callBtn = customer.phone
+      ? `<button class="card-call" onclick="event.stopPropagation(); window.location.href='tel:${escapeHtml(customer.phone)}'" aria-label="Call customer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>`
+      : '';
+    return `
+      <div class="card" data-job-id="${job.id}" onclick="openJob('${job.id}')">
+        <div class="card-title">${escapeHtml(job.title)}</div>
+        <div class="card-sub">${escapeHtml(customer.name || 'No customer')}${customer.address ? ' · ' + escapeHtml(customer.address) : ''}</div>
+        <div class="card-foot">
+          ${techHtml}
+          ${callBtn || (job.amount ? `<span class="card-amount num">$${Number(job.amount).toFixed(0)}</span>` : '')}
+        </div>
+      </div>`;
+  }
+
+  // Drag-and-drop: SortableJS on each column, shared group "kanban"
+  let sortableInstances = [];
+  function initDragAndDrop() {
+    sortableInstances.forEach(s => s.destroy());
+    sortableInstances = [];
+    ['new', 'assigned', 'progress', 'done'].forEach(status => {
+      const col = document.getElementById(`col-${status}`);
+      const instance = Sortable.create(col, {
+        group: 'kanban',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        onEnd: async (evt) => {
+          const jobId = evt.item.getAttribute('data-job-id');
+          const newStatus = evt.to.getAttribute('data-status');
+          const oldStatus = evt.from.getAttribute('data-status');
+          if (newStatus === oldStatus && evt.oldIndex === evt.newIndex) return;
+          await updateJobStatus(jobId, newStatus, evt.newIndex);
+        }
+      });
+      sortableInstances.push(instance);
+    });
+  }
+
+  async function updateJobStatus(jobId, newStatus, newIndex) {
+    const { error } = await supabase
+      .from('jobs')
+      .update({ status: newStatus, board_position: newIndex })
+      .eq('id', jobId);
+    if (error) {
+      alert('Could not update job status: ' + error.message);
+      await loadJobs(); // revert visually by reloading real data
+      return;
+    }
+    // update local cache so counts/tech lookups stay correct without a full reload
+    const job = jobsCache.find(j => j.id === jobId);
+    if (job) job.status = newStatus;
+    document.querySelectorAll('.col-count').forEach(el => {});
+    ['new','assigned','progress','done'].forEach(s => {
+      document.getElementById(`count-${s}`).textContent = jobsCache.filter(j => j.status === s).length;
+    });
+  }
+
+  // ---------- JOB DETAIL / NEW JOB PANEL ----------
+  let panelJobId = null; // null means "creating a new job"
+
+  function openNewJob() {
+    panelJobId = null;
+    document.getElementById('panelTitle').textContent = 'New job';
+    document.getElementById('panelSub').textContent = 'Fill in the details below';
+    document.getElementById('panelJobTitle').value = '';
+    document.getElementById('panelCustomerName').value = '';
+    document.getElementById('panelCustomerPhone').value = '';
+    document.getElementById('panelAmount').value = '';
+    document.getElementById('panelTechnician').value = '';
+    document.getElementById('panelStatus').value = 'new';
+    document.getElementById('panelNotes').value = '';
+    document.getElementById('jobPanel').classList.add('open');
+    document.getElementById('panelOverlay').classList.add('open');
+  }
+
+  function openJob(jobId) {
+    const job = jobsCache.find(j => j.id === jobId);
+    if (!job) return;
+    panelJobId = jobId;
+    const customer = job.customers || {};
+    document.getElementById('panelTitle').textContent = job.title;
+    document.getElementById('panelSub').textContent = `${customer.name || 'No customer'}${customer.address ? ' · ' + customer.address : ''}`;
+    document.getElementById('panelJobTitle').value = job.title || '';
+    document.getElementById('panelCustomerName').value = customer.name || '';
+    document.getElementById('panelCustomerPhone').value = customer.phone || '';
+    document.getElementById('panelAmount').value = job.amount || '';
+    document.getElementById('panelTechnician').value = job.technician_id || '';
+    document.getElementById('panelStatus').value = job.status;
+    document.getElementById('panelNotes').value = job.notes || '';
+    document.getElementById('jobPanel').classList.add('open');
+    document.getElementById('panelOverlay').classList.add('open');
+  }
+
+  function callCustomer() {
+    const phone = document.getElementById('panelCustomerPhone').value.trim();
+    if (phone) window.location.href = `tel:${phone}`;
+  }
+
+  async function saveJob() {
+    const title = document.getElementById('panelJobTitle').value.trim();
+    const custName = document.getElementById('panelCustomerName').value.trim();
+    const custPhone = document.getElementById('panelCustomerPhone').value.trim();
+    const amount = document.getElementById('panelAmount').value;
+    const technicianId = document.getElementById('panelTechnician').value || null;
+    const status = document.getElementById('panelStatus').value;
+    const notes = document.getElementById('panelNotes').value;
+
+    if (!title) { alert('Job title is required.'); return; }
+
+    // find or create the customer by phone number within this business
+    let customerId = null;
+    if (custName && custPhone) {
+      const { data: existing } = await supabase
+        .from('customers').select('id').eq('phone', custPhone).maybeSingle();
+      if (existing) {
+        customerId = existing.id;
+        await supabase.from('customers').update({ name: custName }).eq('id', existing.id);
+      } else {
+        const { data: created, error: custErr } = await supabase
+          .from('customers').insert({ business_id: currentBusiness.id, name: custName, phone: custPhone }).select().single();
+        if (custErr) { alert('Could not save customer: ' + custErr.message); return; }
+        customerId = created.id;
+      }
+    }
+
+    const payload = {
+      business_id: currentBusiness.id,
+      title, status, notes,
+      amount: amount ? parseFloat(amount) : null,
+      technician_id: technicianId,
+      customer_id: customerId,
+    };
+    if (status === 'paid') payload.paid_at = new Date().toISOString();
+
+    let error;
+    if (panelJobId) {
+      ({ error } = await supabase.from('jobs').update(payload).eq('id', panelJobId));
+    } else {
+      ({ error } = await supabase.from('jobs').insert(payload));
+    }
+    if (error) { alert('Could not save job: ' + error.message); return; }
+
+    closePanel();
+    await loadJobs();
+    await loadCustomers();
+    if (status === 'paid') await loadArchive();
+  }
+
+  // ---------- CUSTOMERS ----------
+  async function loadCustomers() {
+    const { data: customers, error } = await supabase.from('customers').select('*').order('name');
+    if (error) { console.error(error); return; }
+    const { data: paidJobs } = await supabase.from('jobs').select('customer_id, amount').eq('status', 'paid');
+
+    const body = document.getElementById('customersBody');
+    if (!customers || !customers.length) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">No customers yet. They'll appear here once you create a job.</td></tr>`;
+      return;
+    }
+    body.innerHTML = customers.map(c => {
+      const theirPaidJobs = (paidJobs || []).filter(j => j.customer_id === c.id);
+      const lifetimeValue = theirPaidJobs.reduce((sum, j) => sum + (Number(j.amount) || 0), 0);
+      return `
+        <tr class="row-clickable">
+          <td><div class="name-cell"><span class="row-avatar">${initials(c.name)}</span>${escapeHtml(c.name)}</div></td>
+          <td><a class="phone-link num" href="tel:${escapeHtml(c.phone)}">${escapeHtml(c.phone)}</a></td>
+          <td>${escapeHtml(c.address || '—')}</td>
+          <td class="num">${theirPaidJobs.length}</td>
+          <td class="num">$${lifetimeValue.toFixed(2)}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ---------- INVOICES ----------
+  async function loadInvoices() {
+    const { data, error } = await supabase
+      .from('invoices').select('*, customers(name)').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    const body = document.getElementById('invoicesBody');
+    if (!data || !data.length) {
+      body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">No invoices yet.</td></tr>`;
+      return;
+    }
+    body.innerHTML = data.map(inv => {
+      const pillClass = inv.status === 'paid' ? 'pill-paid' : inv.status === 'overdue' ? 'pill-overdue' : 'pill-unpaid';
+      const date = new Date(inv.created_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `
+        <tr class="row-clickable">
+          <td class="num">${escapeHtml(inv.invoice_number)}</td>
+          <td>${escapeHtml((inv.customers && inv.customers.name) || '—')}</td>
+          <td>${date}</td>
+          <td class="num">$${Number(inv.total).toFixed(2)}</td>
+          <td><span class="pill ${pillClass}">${inv.status[0].toUpperCase() + inv.status.slice(1)}</span></td>
+          <td><div class="row-actions"><button class="mini-btn" onclick="window.print()">Print</button></div></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ---------- ARCHIVE (paid jobs) ----------
+  async function loadArchive() {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*, customers(name), technicians(name)')
+      .eq('status', 'paid')
+      .order('paid_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    const body = document.getElementById('archiveBody');
+    if (!data || !data.length) {
+      body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">No paid jobs yet. They'll show up here once marked Paid.</td></tr>`;
+      return;
+    }
+    body.innerHTML = data.map(j => {
+      const date = j.paid_at ? new Date(j.paid_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+      return `
+        <tr class="row-clickable">
+          <td>${escapeHtml(j.title)}</td>
+          <td>${escapeHtml((j.customers && j.customers.name) || '—')}</td>
+          <td>${escapeHtml((j.technicians && j.technicians.name) || '—')}</td>
+          <td>${date}</td>
+          <td class="num">$${Number(j.amount || 0).toFixed(2)}</td>
+          <td class="num">—</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ---------- SETTINGS ----------
+  async function saveBusinessDetails() {
+    const postal = document.getElementById('postalCode');
+    if (!validatePostalCode(postal)) { postal.focus(); return; }
+    const { error } = await supabase.from('businesses').update({
+      name: document.getElementById('bizName').value.trim(),
+      uen: document.getElementById('bizUen').value.trim(),
+      phone: document.getElementById('bizPhone').value.trim(),
+      address: document.getElementById('bizAddress').value.trim(),
+      postal_code: postal.value.trim(),
+    }).eq('id', currentBusiness.id);
+    if (error) { alert('Could not save: ' + error.message); return; }
+    alert('Business details saved.');
+    await loadCurrentBusiness();
+  }
+
+  async function saveInvoiceFooter() {
+    const { error } = await supabase.from('businesses').update({
+      invoice_footer: document.getElementById('bizFooter').value
+    }).eq('id', currentBusiness.id);
+    if (error) { alert('Could not save: ' + error.message); return; }
+    alert('Invoice footer saved.');
+  }
+
+  function validatePostalCode(input) {
+    const errorEl = document.getElementById('postalError');
+    const valid = /^\d{6}$/.test(input.value.trim());
+    errorEl.style.display = valid ? 'none' : 'block';
+    return valid;
+  }
+
+  // ============================================================
+  // NAVIGATION / UI HELPERS (unchanged behaviour, kept from prototype)
+  // ============================================================
   function goTo(page) {
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
@@ -941,12 +1364,6 @@
     document.getElementById('drawerOverlay').classList.remove('open');
   }
 
-  function openPanel(title, sub) {
-    document.getElementById('panelTitle').textContent = title;
-    document.getElementById('panelSub').textContent = sub;
-    document.getElementById('jobPanel').classList.add('open');
-    document.getElementById('panelOverlay').classList.add('open');
-  }
   function closePanel() {
     document.getElementById('jobPanel').classList.remove('open');
     document.getElementById('panelOverlay').classList.remove('open');
@@ -958,20 +1375,9 @@
     XLSX.writeFile(wb, filename);
   }
 
-  function validatePostalCode(input) {
-    const errorEl = document.getElementById('postalError');
-    const valid = /^\d{6}$/.test(input.value.trim());
-    errorEl.style.display = valid ? 'none' : 'block';
-    return valid;
-  }
-
-  function saveBusinessDetails() {
-    const postal = document.getElementById('postalCode');
-    if (!validatePostalCode(postal)) {
-      postal.focus();
-      return;
-    }
-    alert('Business details saved.');
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
 </script>
