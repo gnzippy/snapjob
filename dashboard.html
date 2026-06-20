@@ -847,6 +847,9 @@
       <h4>Job notes</h4>
       <textarea id="panelNotes" rows="3" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="Add notes about this job..."></textarea>
     </div>
+    <div class="panel-section" id="panelInvoiceShortcut" style="display:none;">
+      <button class="mini-btn" style="width:100%; padding:10px;" onclick="createInvoiceFromJob()">🧾 Create invoice for this job</button>
+    </div>
   </div>
   <div class="panel-footer">
     <button class="btn-ghost" onclick="closePanel()">Cancel</button>
@@ -920,6 +923,56 @@
     <button class="btn-primary" style="flex:1; justify-content:center;" onclick="saveInvoice()">Create invoice</button>
   </div>
 </div>
+
+<!-- ============ INVOICE PREVIEW PANEL ============ -->
+<div class="panel-overlay" id="invoicePreviewOverlay" onclick="closeInvoicePreview()"></div>
+<div class="panel" id="invoicePreviewPanel" style="width:560px;">
+  <div class="panel-head" style="border-bottom:none;">
+    <h2>Invoice preview</h2>
+    <button class="drawer-close" onclick="closeInvoicePreview()" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="panel-body" id="invoiceDocumentArea" style="background:#F1F5F9;">
+    <!-- filled dynamically by renderInvoiceDocument() -->
+  </div>
+  <div class="panel-footer">
+    <button class="btn-ghost" onclick="closeInvoicePreview()">Close</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="printInvoiceDocument()">Print / Save as PDF</button>
+  </div>
+</div>
+
+<style>
+  /* Print only the invoice document, never the rest of the dashboard */
+  @media print {
+    body * { visibility: hidden; }
+    #invoiceDocumentArea, #invoiceDocumentArea * { visibility: visible; }
+    #invoiceDocumentArea { position: absolute; top: 0; left: 0; width: 100%; background: #fff !important; }
+  }
+  .inv-doc {
+    background: #fff; border-radius: 8px; padding: 28px; font-size: 13px; color: var(--ink);
+  }
+  .inv-doc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid var(--ink); }
+  .inv-doc-logo { max-height: 56px; max-width: 160px; margin-bottom: 8px; }
+  .inv-doc-bizname { font-size: 16px; font-weight: 800; }
+  .inv-doc-meta { font-size: 11.5px; color: var(--slate); line-height: 1.6; margin-top: 4px; }
+  .inv-doc-title { text-align: right; }
+  .inv-doc-title h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .inv-doc-num { font-size: 12px; color: var(--slate); margin-top: 4px; }
+  .inv-doc-parties { display: flex; justify-content: space-between; margin-bottom: 24px; }
+  .inv-doc-parties .label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate); font-weight: 700; margin-bottom: 6px; }
+  .inv-doc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .inv-doc-table th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate); padding: 8px 0; border-bottom: 1.5px solid var(--ink); }
+  .inv-doc-table td { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .inv-doc-totals { margin-left: auto; width: 220px; }
+  .inv-doc-totals .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+  .inv-doc-totals .row.total { border-top: 2px solid var(--ink); margin-top: 6px; padding-top: 10px; font-weight: 800; font-size: 15px; }
+  .inv-doc-foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .inv-doc-qr { text-align: center; }
+  .inv-doc-qr img { max-width: 110px; max-height: 110px; border-radius: 6px; border: 1px solid var(--border); }
+  .inv-doc-qr div { font-size: 10.5px; color: var(--slate); margin-top: 6px; }
+  .inv-doc-footer-text { font-size: 11px; color: var(--slate); max-width: 280px; line-height: 1.5; }
+</style>
 
 <script>
 
@@ -1205,6 +1258,7 @@
     document.getElementById('panelTechnician').value = '';
     document.getElementById('panelStatus').value = 'new';
     document.getElementById('panelNotes').value = '';
+    document.getElementById('panelInvoiceShortcut').style.display = 'none';
     document.getElementById('jobPanel').classList.add('open');
     document.getElementById('panelOverlay').classList.add('open');
   }
@@ -1223,8 +1277,31 @@
     document.getElementById('panelTechnician').value = job.technician_id || '';
     document.getElementById('panelStatus').value = job.status;
     document.getElementById('panelNotes').value = job.notes || '';
+    document.getElementById('panelInvoiceShortcut').style.display = 'block';
     document.getElementById('jobPanel').classList.add('open');
     document.getElementById('panelOverlay').classList.add('open');
+  }
+
+  async function createInvoiceFromJob() {
+    if (!panelJobId) return;
+    const job = jobsCache.find(j => j.id === panelJobId);
+    if (!job) return;
+    if (!job.customer_id) { alert('This job has no customer attached yet. Add a customer name and phone, save the job, then try again.'); return; }
+
+    closePanel();
+    openNewInvoice();
+    // pre-select this job's customer and link the job, then add one line item from the job title/amount
+    document.getElementById('invJob').value = job.id;
+    document.getElementById('invCustomer').value = job.customer_id;
+    document.getElementById('invLineItems').innerHTML = '';
+    invoiceLineItemCount = 0;
+    addInvoiceLineItem();
+    const firstRow = document.querySelector('#invLineItems > div');
+    if (firstRow) {
+      firstRow.querySelector('.inv-line-desc').value = job.title || '';
+      firstRow.querySelector('.inv-line-amount').value = job.amount || '';
+    }
+    recalculateInvoiceTotal();
   }
 
   function callCustomer() {
@@ -1309,17 +1386,19 @@
   }
 
   // ---------- INVOICES ----------
+  let invoicesCache = [];
+
   async function loadInvoices() {
     const { data, error } = await db
-      .from('invoices').select('*, customers(name)').order('created_at', { ascending: false });
+      .from('invoices').select('*, customers(name, phone, address)').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
+    invoicesCache = data || [];
     const body = document.getElementById('invoicesBody');
-    if (!data || !data.length) {
+    if (!invoicesCache.length) {
       body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">No invoices yet.</td></tr>`;
       return;
     }
-    body.innerHTML = data.map(inv => {
-      const pillClass = inv.status === 'paid' ? 'pill-paid' : inv.status === 'overdue' ? 'pill-overdue' : 'pill-unpaid';
+    body.innerHTML = invoicesCache.map(inv => {
       const date = new Date(inv.created_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' });
       return `
         <tr class="row-clickable">
@@ -1327,10 +1406,110 @@
           <td>${escapeHtml((inv.customers && inv.customers.name) || '—')}</td>
           <td>${date}</td>
           <td class="num">$${Number(inv.total).toFixed(2)}</td>
-          <td><span class="pill ${pillClass}">${inv.status[0].toUpperCase() + inv.status.slice(1)}</span></td>
-          <td><div class="row-actions"><button class="mini-btn" onclick="window.print()">Print</button></div></td>
+          <td>
+            <select class="select-input" style="padding:5px 8px; font-size:12px;" onchange="updateInvoiceStatus('${inv.id}', this.value)">
+              <option value="unpaid" ${inv.status === 'unpaid' ? 'selected' : ''}>Unpaid</option>
+              <option value="paid" ${inv.status === 'paid' ? 'selected' : ''}>Paid</option>
+              <option value="overdue" ${inv.status === 'overdue' ? 'selected' : ''}>Overdue</option>
+            </select>
+          </td>
+          <td><div class="row-actions"><button class="mini-btn" onclick="openInvoicePreview('${inv.id}')">Preview</button></div></td>
         </tr>`;
     }).join('');
+  }
+
+  async function updateInvoiceStatus(invoiceId, newStatus) {
+    const payload = { status: newStatus };
+    if (newStatus === 'paid') payload.paid_at = new Date().toISOString();
+    const { error } = await db.from('invoices').update(payload).eq('id', invoiceId);
+    if (error) { alert('Could not update invoice status: ' + error.message); return; }
+    await loadInvoices();
+  }
+
+  // ---------- INVOICE PREVIEW DOCUMENT ----------
+  function openInvoicePreview(invoiceId) {
+    const inv = invoicesCache.find(i => i.id === invoiceId);
+    if (!inv) return;
+    document.getElementById('invoiceDocumentArea').innerHTML = renderInvoiceDocument(inv);
+    document.getElementById('invoicePreviewPanel').classList.add('open');
+    document.getElementById('invoicePreviewOverlay').classList.add('open');
+  }
+
+  function closeInvoicePreview() {
+    document.getElementById('invoicePreviewPanel').classList.remove('open');
+    document.getElementById('invoicePreviewOverlay').classList.remove('open');
+  }
+
+  function printInvoiceDocument() {
+    window.print();
+  }
+
+  function renderInvoiceDocument(inv) {
+    const biz = currentBusiness || {};
+    const customer = inv.customers || {};
+    const date = new Date(inv.created_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' });
+    const lineItems = Array.isArray(inv.line_items) ? inv.line_items : [];
+
+    const logoHtml = biz.logo_url
+      ? `<img class="inv-doc-logo" src="${biz.logo_url}" alt="logo">`
+      : `<div class="inv-doc-bizname">${escapeHtml(biz.name || 'Your Business')}</div>`;
+
+    const bizMetaLines = [
+      biz.logo_url ? escapeHtml(biz.name || '') : '',
+      biz.uen ? `UEN: ${escapeHtml(biz.uen)}` : '',
+      biz.address ? escapeHtml(biz.address) : '',
+      biz.postal_code ? `Singapore ${escapeHtml(biz.postal_code)}` : '',
+      biz.phone ? escapeHtml(biz.phone) : ''
+    ].filter(Boolean).join('<br>');
+
+    const rowsHtml = lineItems.map(li => `
+      <tr>
+        <td>${escapeHtml(li.description || '—')}</td>
+        <td class="num" style="text-align:right;">$${Number(li.amount || 0).toFixed(2)}</td>
+      </tr>`).join('') || `<tr><td colspan="2" style="color:var(--slate);">No line items recorded.</td></tr>`;
+
+    const qrHtml = biz.paynow_qr_url
+      ? `<div class="inv-doc-qr"><img src="${biz.paynow_qr_url}" alt="PayNow QR"><div>Scan to pay via PayNow</div></div>`
+      : `<div class="inv-doc-qr"><div style="font-size:11px; color:var(--slate); max-width:140px;">No PayNow QR on file — add one in Settings.</div></div>`;
+
+    return `
+      <div class="inv-doc">
+        <div class="inv-doc-head">
+          <div>
+            ${logoHtml}
+            <div class="inv-doc-meta">${bizMetaLines}</div>
+          </div>
+          <div class="inv-doc-title">
+            <h3>INVOICE</h3>
+            <div class="inv-doc-num">${escapeHtml(inv.invoice_number)}<br>${date}</div>
+          </div>
+        </div>
+        <div class="inv-doc-parties">
+          <div>
+            <div class="label">Billed to</div>
+            <div style="font-weight:700;">${escapeHtml(customer.name || '—')}</div>
+            <div style="color:var(--slate); font-size:12px; margin-top:2px;">${escapeHtml(customer.phone || '')}</div>
+            <div style="color:var(--slate); font-size:12px;">${escapeHtml(customer.address || '')}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="label">Status</div>
+            <span class="pill ${inv.status === 'paid' ? 'pill-paid' : inv.status === 'overdue' ? 'pill-overdue' : 'pill-unpaid'}">${inv.status[0].toUpperCase() + inv.status.slice(1)}</span>
+          </div>
+        </div>
+        <table class="inv-doc-table">
+          <thead><tr><th>Description</th><th style="text-align:right;">Amount</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <div class="inv-doc-totals">
+          <div class="row"><span>Subtotal</span><span class="num">$${Number(inv.subtotal || 0).toFixed(2)}</span></div>
+          ${inv.gst_applied ? `<div class="row"><span>GST (9%)</span><span class="num">$${(Number(inv.total || 0) - Number(inv.subtotal || 0)).toFixed(2)}</span></div>` : ''}
+          <div class="row total"><span>Total</span><span class="num">$${Number(inv.total || 0).toFixed(2)}</span></div>
+        </div>
+        <div class="inv-doc-foot">
+          <div class="inv-doc-footer-text">${escapeHtml(biz.invoice_footer || '')}</div>
+          ${qrHtml}
+        </div>
+      </div>`;
   }
 
   // ---------- NEW INVOICE ----------
