@@ -657,7 +657,7 @@
             <button class="mini-btn" onclick="exportTableToExcel('invoicesTable', 'invoices.xlsx')">
               ⬇ Export to Excel
             </button>
-            <button class="btn-primary" onclick="alert('New invoice form goes here.')">
+            <button class="btn-primary" onclick="openNewInvoice()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
               New invoice
             </button>
@@ -743,11 +743,13 @@
             <h3>Branding</h3>
             <div class="field">
               <label>Business logo</label>
-              <div class="upload-box">Click to upload logo (PNG/JPG)</div>
+              <input type="file" id="logoFileInput" accept="image/png,image/jpeg" style="display:none;" onchange="handleFileUpload(this, 'logo')">
+              <div class="upload-box" id="logoUploadBox" onclick="document.getElementById('logoFileInput').click()">Click to upload logo (PNG/JPG)</div>
             </div>
             <div class="field">
               <label>PayNow QR code</label>
-              <div class="upload-box">Click to upload PayNow QR</div>
+              <input type="file" id="paynowFileInput" accept="image/png,image/jpeg" style="display:none;" onchange="handleFileUpload(this, 'paynow')">
+              <div class="upload-box" id="paynowUploadBox" onclick="document.getElementById('paynowFileInput').click()">Click to upload PayNow QR</div>
             </div>
           </div>
           <div class="settings-card full">
@@ -879,7 +881,48 @@
   </div>
 </div>
 
+<!-- ============ NEW INVOICE MODAL ============ -->
+<div class="panel-overlay" id="invoiceModalOverlay" onclick="closeNewInvoice()"></div>
+<div class="panel" id="invoiceModal" style="width:460px;">
+  <div class="panel-head">
+    <h2>New invoice</h2>
+    <button class="drawer-close" onclick="closeNewInvoice()" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-section">
+      <h4>Customer</h4>
+      <select id="invCustomer" class="status-select"><option value="">Select a customer…</option></select>
+    </div>
+    <div class="panel-section">
+      <h4>Link to job (optional)</h4>
+      <select id="invJob" class="status-select"><option value="">No linked job</option></select>
+    </div>
+    <div class="panel-section">
+      <h4>Line items</h4>
+      <div id="invLineItems"></div>
+      <button class="mini-btn" style="margin-top:8px;" onclick="addInvoiceLineItem()">+ Add line item</button>
+    </div>
+    <div class="panel-section">
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; color:var(--ink-soft); cursor:pointer;">
+        <input type="checkbox" id="invGst" onchange="recalculateInvoiceTotal()"> Apply 9% GST
+      </label>
+    </div>
+    <div class="panel-section">
+      <div class="panel-row"><span class="label">Subtotal</span><span class="num" id="invSubtotalDisplay">$0.00</span></div>
+      <div class="panel-row"><span class="label">GST (9%)</span><span class="num" id="invGstDisplay">$0.00</span></div>
+      <div class="panel-row" style="font-weight:800; font-size:15px;"><span>Total</span><span class="num" id="invTotalDisplay">$0.00</span></div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn-ghost" onclick="closeNewInvoice()">Cancel</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="saveInvoice()">Create invoice</button>
+  </div>
+</div>
+
 <script>
+
   // ============================================================
   // STATE
   // ============================================================
@@ -957,6 +1000,7 @@
     const { data, error } = await db.from('businesses').select('*').single();
     if (error) {
       console.error('Failed to load business:', error);
+      alert('Could not load your business profile. This usually means your account is missing a business record. Error: ' + error.message);
       return;
     }
     currentBusiness = data;
@@ -972,6 +1016,8 @@
     document.getElementById('bizAddress').value = currentBusiness.address || '';
     document.getElementById('postalCode').value = currentBusiness.postal_code || '';
     document.getElementById('bizFooter').value = currentBusiness.invoice_footer || '';
+    if (currentBusiness.logo_url) showUploadPreview(document.getElementById('logoUploadBox'), currentBusiness.logo_url, 'logo');
+    if (currentBusiness.paynow_qr_url) showUploadPreview(document.getElementById('paynowUploadBox'), currentBusiness.paynow_qr_url, 'paynow');
   }
 
   function updateTrialBanner() {
@@ -1041,6 +1087,7 @@
     document.getElementById('techModalOverlay').classList.remove('open');
   }
   async function saveTechnician() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
     const name = document.getElementById('techName').value.trim();
     const phone = document.getElementById('techPhone').value.trim();
     if (!name || !phone) { alert('Name and phone are required.'); return; }
@@ -1059,7 +1106,7 @@
 
   // ---------- JOBS / KANBAN ----------
   async function loadJobs() {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('jobs')
       .select('*, customers(name, phone, address)')
       .neq('status', 'paid')
@@ -1126,7 +1173,7 @@
   }
 
   async function updateJobStatus(jobId, newStatus, newIndex) {
-    const { error } = await supabase
+    const { error } = await db
       .from('jobs')
       .update({ status: newStatus, board_position: newIndex })
       .eq('id', jobId);
@@ -1186,6 +1233,7 @@
   }
 
   async function saveJob() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
     const title = document.getElementById('panelJobTitle').value.trim();
     const custName = document.getElementById('panelCustomerName').value.trim();
     const custPhone = document.getElementById('panelCustomerPhone').value.trim();
@@ -1199,13 +1247,13 @@
     // find or create the customer by phone number within this business
     let customerId = null;
     if (custName && custPhone) {
-      const { data: existing } = await supabase
+      const { data: existing } = await db
         .from('customers').select('id').eq('phone', custPhone).maybeSingle();
       if (existing) {
         customerId = existing.id;
         await db.from('customers').update({ name: custName }).eq('id', existing.id);
       } else {
-        const { data: created, error: custErr } = await supabase
+        const { data: created, error: custErr } = await db
           .from('customers').insert({ business_id: currentBusiness.id, name: custName, phone: custPhone }).select().single();
         if (custErr) { alert('Could not save customer: ' + custErr.message); return; }
         customerId = created.id;
@@ -1262,7 +1310,7 @@
 
   // ---------- INVOICES ----------
   async function loadInvoices() {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('invoices').select('*, customers(name)').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     const body = document.getElementById('invoicesBody');
@@ -1285,9 +1333,102 @@
     }).join('');
   }
 
-  // ---------- ARCHIVE (paid jobs) ----------
+  // ---------- NEW INVOICE ----------
+  let invoiceLineItemCount = 0;
+
+  function openNewInvoice() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const custSelect = document.getElementById('invCustomer');
+    custSelect.innerHTML = '<option value="">Select a customer…</option>' +
+      [...new Map(jobsCache.filter(j => j.customers).map(j => [j.customer_id, j.customers])).entries()]
+        .map(([id, c]) => `<option value="${id}">${escapeHtml(c.name)}</option>`).join('');
+
+    const jobSelect = document.getElementById('invJob');
+    jobSelect.innerHTML = '<option value="">No linked job</option>' +
+      jobsCache.map(j => `<option value="${j.id}" data-customer="${j.customer_id || ''}" data-amount="${j.amount || ''}">${escapeHtml(j.title)}</option>`).join('');
+
+    document.getElementById('invGst').checked = false;
+    document.getElementById('invLineItems').innerHTML = '';
+    invoiceLineItemCount = 0;
+    addInvoiceLineItem();
+    recalculateInvoiceTotal();
+
+    document.getElementById('invoiceModal').classList.add('open');
+    document.getElementById('invoiceModalOverlay').classList.add('open');
+  }
+
+  function closeNewInvoice() {
+    document.getElementById('invoiceModal').classList.remove('open');
+    document.getElementById('invoiceModalOverlay').classList.remove('open');
+  }
+
+  function addInvoiceLineItem() {
+    invoiceLineItemCount++;
+    const id = `line-${invoiceLineItemCount}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.style = 'display:flex; gap:8px; margin-bottom:8px; align-items:center;';
+    row.innerHTML = `
+      <input class="inv-line-desc" placeholder="Description" style="flex:2; border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-size:13px; font-family:inherit;">
+      <input class="inv-line-amount num" type="number" step="0.01" placeholder="0.00" oninput="recalculateInvoiceTotal()" style="flex:1; border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-size:13px; font-family:inherit;">
+      <button class="mini-btn" onclick="document.getElementById('${id}').remove(); recalculateInvoiceTotal();">✕</button>
+    `;
+    document.getElementById('invLineItems').appendChild(row);
+  }
+
+  function recalculateInvoiceTotal() {
+    const amounts = [...document.querySelectorAll('.inv-line-amount')].map(el => parseFloat(el.value) || 0);
+    const subtotal = amounts.reduce((sum, a) => sum + a, 0);
+    const gstApplied = document.getElementById('invGst').checked;
+    const gst = gstApplied ? subtotal * 0.09 : 0;
+    const total = subtotal + gst;
+    document.getElementById('invSubtotalDisplay').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('invGstDisplay').textContent = `$${gst.toFixed(2)}`;
+    document.getElementById('invTotalDisplay').textContent = `$${total.toFixed(2)}`;
+  }
+
+  async function saveInvoice() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const customerId = document.getElementById('invCustomer').value || null;
+    const jobId = document.getElementById('invJob').value || null;
+    const gstApplied = document.getElementById('invGst').checked;
+
+    const lineItems = [...document.querySelectorAll('#invLineItems > div')].map(row => ({
+      description: row.querySelector('.inv-line-desc').value.trim(),
+      amount: parseFloat(row.querySelector('.inv-line-amount').value) || 0
+    })).filter(li => li.description || li.amount);
+
+    if (!customerId) { alert('Please select a customer.'); return; }
+    if (!lineItems.length) { alert('Add at least one line item.'); return; }
+
+    const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
+    const gst = gstApplied ? subtotal * 0.09 : 0;
+    const total = subtotal + gst;
+
+    // simple sequential invoice number based on count of existing invoices for this business
+    const { count } = await db.from('invoices').select('*', { count: 'exact', head: true });
+    const invoiceNumber = `INV-${String((count || 0) + 1).padStart(4, '0')}`;
+
+    const { error } = await db.from('invoices').insert({
+      business_id: currentBusiness.id,
+      job_id: jobId,
+      customer_id: customerId,
+      invoice_number: invoiceNumber,
+      line_items: lineItems,
+      gst_applied: gstApplied,
+      subtotal,
+      total,
+      status: 'unpaid'
+    });
+
+    if (error) { alert('Could not create invoice: ' + error.message); return; }
+    closeNewInvoice();
+    await loadInvoices();
+  }
+
+
   async function loadArchive() {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('jobs')
       .select('*, customers(name), technicians(name)')
       .eq('status', 'paid')
@@ -1312,8 +1453,51 @@
     }).join('');
   }
 
+  // ---------- FILE UPLOADS (logo / PayNow QR) ----------
+  async function handleFileUpload(inputEl, kind) {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const file = inputEl.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) { alert('Please choose an image under 2MB.'); inputEl.value = ''; return; }
+
+    const boxId = kind === 'logo' ? 'logoUploadBox' : 'paynowUploadBox';
+    const box = document.getElementById(boxId);
+    const originalText = box.textContent;
+    box.textContent = 'Uploading…';
+
+    const ext = file.name.split('.').pop();
+    const path = `${currentBusiness.id}/${kind}.${ext}`;
+
+    const { error: uploadError } = await db.storage.from('business-assets').upload(path, file, { upsert: true });
+    if (uploadError) {
+      alert('Upload failed: ' + uploadError.message);
+      box.textContent = originalText;
+      return;
+    }
+
+    const { data: urlData } = db.storage.from('business-assets').getPublicUrl(path);
+    const publicUrl = urlData.publicUrl;
+
+    const column = kind === 'logo' ? 'logo_url' : 'paynow_qr_url';
+    const { error: updateError } = await db.from('businesses').update({ [column]: publicUrl }).eq('id', currentBusiness.id);
+    if (updateError) {
+      alert('Uploaded, but could not save to your business profile: ' + updateError.message);
+      box.textContent = originalText;
+      return;
+    }
+
+    currentBusiness[column] = publicUrl;
+    showUploadPreview(box, publicUrl, kind);
+  }
+
+  function showUploadPreview(box, url, kind) {
+    box.innerHTML = `<img src="${url}" alt="${kind}" style="max-height:60px; max-width:100%; border-radius:4px;"><div style="font-size:11px; margin-top:6px; color:var(--slate);">Click to replace</div>`;
+  }
+
   // ---------- SETTINGS ----------
   async function saveBusinessDetails() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
     const postal = document.getElementById('postalCode');
     if (!validatePostalCode(postal)) { postal.focus(); return; }
     const { error } = await db.from('businesses').update({
@@ -1329,6 +1513,7 @@
   }
 
   async function saveInvoiceFooter() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
     const { error } = await db.from('businesses').update({
       invoice_footer: document.getElementById('bizFooter').value
     }).eq('id', currentBusiness.id);
