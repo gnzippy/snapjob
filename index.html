@@ -1,4 +1,4 @@
-<a href="/dashboard.html" class="nav-cta">Get Started</a><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -122,23 +122,6 @@ input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}
 footer{padding:28px 24px;text-align:center;border-top:1px solid var(--brd)}
 footer p{font-size:12px;color:var(--grey)}
 footer a{color:var(--grey);text-decoration:none}
-.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-ov.open{display:flex}
-.modal{background:#111827;border:1px solid var(--bb);border-radius:18px;padding:28px;max-width:400px;width:100%;position:relative}
-.modal h3{font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px}
-.modal p{font-size:13px;color:var(--grey);margin-bottom:20px;line-height:1.6}
-.modal-x{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--grey);font-size:17px;cursor:pointer}
-.fg{margin-bottom:11px}
-.fg label{font-size:11px;font-weight:600;color:var(--grey);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.4px}
-.fi{width:100%;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 13px;color:var(--white);font-size:13px;font-family:'Poppins',sans-serif}
-.fi:focus{outline:none;border-color:var(--blue)}
-.fi::placeholder{color:var(--grey)}
-.fse{width:100%;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 13px;color:var(--white);font-size:13px;font-family:'Poppins',sans-serif}
-.modal-sub{width:100%;background:var(--blue);color:var(--navy);font-size:14px;font-weight:700;padding:12px;border-radius:9px;border:none;cursor:pointer;font-family:'Poppins',sans-serif;margin-top:4px}
-.modal-ok{display:none;text-align:center;padding:16px 0}
-.modal-ok .big{font-size:44px;margin-bottom:10px}
-.modal-ok h4{font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;margin-bottom:7px}
-.modal-ok p{font-size:13px;color:var(--grey)}
 .fiu{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
 .fiu.vis{opacity:1;transform:none}
 @media(max-width:700px){.calc-row{grid-template-columns:1fr}.calc-result{grid-template-columns:1fr 1fr}}
@@ -154,7 +137,7 @@ footer a{color:var(--grey);text-decoration:none}
     <a href="#savings">Savings</a>
     <a href="#pricing">Pricing</a>
   </div>
-  <a class="nav-cta" href="#" onclick="openModal();return false">Get early access</a>
+  <a class="nav-cta" href="/dashboard.html">Log in</a>
 </nav>
 
 <!-- HERO -->
@@ -166,7 +149,7 @@ footer a{color:var(--grey);text-decoration:none}
     <h1>Stop managing jobs<br>in <span>WhatsApp groups</span></h1>
     <p class="hero-sub">SnapJob gives trade businesses a simple dashboard to track jobs, assign technicians, and send professional invoices — all in one place.</p>
     <div class="btns">
-      <a class="btn-p" href="#" onclick="openModal();return false">Get 3 months free</a>
+      <a class="btn-p" href="/dashboard.html">Get started free</a>
       <a class="btn-s" href="#how">See how it works</a>
     </div>
     <div style="position:relative;max-width:290px;width:100%;margin:0 auto">
@@ -382,7 +365,7 @@ footer a{color:var(--grey);text-decoration:none}
           <li>PayNow QR on invoices</li>
           <li>Customer CRM</li>
         </ul>
-        <a class="plan-cta out" href="#" onclick="openModal();return false">Start free</a>
+        <a class="plan-cta out" href="/dashboard.html">Start free</a>
       </div>
 
       <div class="plan hot fiu">
@@ -401,7 +384,7 @@ footer a{color:var(--grey);text-decoration:none}
           <li>Customer CRM & history</li>
           <li>Activity feed</li>
         </ul>
-        <a class="plan-cta" href="#" onclick="openModal();return false">Get 3 months free</a>
+        <a class="plan-cta" href="/dashboard.html">Get started free</a>
       </div>
 
       <div class="plan fiu">
@@ -416,7 +399,7 @@ footer a{color:var(--grey);text-decoration:none}
           <li>Priority WhatsApp support</li>
           <li>Custom invoice footer</li>
         </ul>
-        <a class="plan-cta out" href="#" onclick="openModal();return false">Get 3 months free</a>
+        <a class="plan-cta out" href="/dashboard.html">Get started free</a>
       </div>
 
     </div>
@@ -428,7 +411,7 @@ footer a{color:var(--grey);text-decoration:none}
 <div class="cta-sec">
   <h2>Ready to stop managing<br>jobs manually?</h2>
   <p>First 50 businesses get 6 months free. No credit card.</p>
-  <a class="btn-p" href="#" onclick="openModal();return false">Get early access — it's free</a>
+  <a class="btn-p" href="/dashboard.html">Get started — it's free</a>
 </div>
 
 <footer>
@@ -438,73 +421,7 @@ footer a{color:var(--grey);text-decoration:none}
   <p style="margin-top:12px;font-size:11px">© 2026 SnapJob. Built in Singapore.</p>
 </footer>
 
-<!-- MODAL -->
-<div class="modal-ov" id="modal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <button class="modal-x" onclick="closeModal()">✕</button>
-    <div id="modal-form">
-      <h3>Get early access</h3>
-      <p>First 50 businesses get 6 months free. We'll WhatsApp you to get set up — takes 10 minutes.</p>
-      <div class="fg"><label>Your name</label><input type="text" id="m-name" class="fi" placeholder="e.g. Ahmad"></div>
-      <div class="fg"><label>Business name</label><input type="text" id="m-biz" class="fi" placeholder="e.g. Ahmad Aircon Services"></div>
-      <div class="fg"><label>WhatsApp number</label><input type="text" id="m-phone" class="fi" placeholder="+65 or +60..."></div>
-      <div class="fg"><label>Type of business</label>
-        <select id="m-trade" class="fse">
-          <option value="">Select your trade...</option>
-          <option>Aircon servicing & repair</option>
-          <option>Plumbing</option>
-          <option>Electrical</option>
-          <option>Appliance repair</option>
-          <option>Cleaning</option>
-          <option>Renovation</option>
-          <option>Other trades</option>
-        </select>
-      </div>
-      <div class="fg"><label>How many technicians?</label><input type="text" id="m-tech" class="fi" placeholder="e.g. 2"></div>
-      <button class="modal-sub" onclick="submitWaitlist()">Join waitlist — free</button>
-    </div>
-    <div class="modal-ok" id="modal-ok">
-      <div class="big">✅</div>
-      <h4>You're on the list!</h4>
-      <p>We'll WhatsApp you within 24 hours to get you set up. First 50 businesses get 6 months free.</p>
-    </div>
-  </div>
-</div>
-
 <script>
-function openModal(){document.getElementById('modal').classList.add('open')}
-function closeModal(){document.getElementById('modal').classList.remove('open')}
-async function submitWaitlist(){
-  const name=document.getElementById('m-name').value.trim();
-  const biz=document.getElementById('m-biz').value.trim();
-  const phone=document.getElementById('m-phone').value.trim();
-  const trade=document.getElementById('m-trade').value;
-  const techs=document.getElementById('m-tech').value.trim();
-  if(!name||!phone){alert('Please enter your name and WhatsApp number.');return;}
-
-  const btn=document.querySelector('.modal-sub');
-  btn.textContent='Saving...';btn.disabled=true;
-
-  try {
-    // Save to Supabase waitlist table
-    await fetch('https://jjxvcglxxelknlhngumd.supabase.co/rest/v1/waitlist', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZjZ2x4eGVsa25saG5ndW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjQ3ODAsImV4cCI6MjA5NTgwMDc4MH0.f91yxUb0_HRtOr0HQJtT2O9mK7VrBaYxZdndKU735qc',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZjZ2x4eGVsa25saG5ndW1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjQ3ODAsImV4cCI6MjA5NTgwMDc4MH0.f91yxUb0_HRtOr0HQJtT2O9mK7VrBaYxZdndKU735qc',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ name, business_name: biz, phone, trade, technicians: techs, created_at: new Date().toISOString() })
-    });
-  } catch(e) {
-    console.log('Waitlist save error:', e);
-  }
-
-  document.getElementById('modal-form').style.display='none';
-  document.getElementById('modal-ok').style.display='block';
-}
-
 function calcROI(){
   const jobs=parseInt(document.getElementById('r-jobs').value);
   const techs=parseInt(document.getElementById('r-techs').value);
