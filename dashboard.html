@@ -517,7 +517,7 @@
 
 <!-- ============ LOGIN SCREEN ============ -->
 <div class="login-screen" id="loginScreen">
-  <div class="login-card">
+  <div class="login-card" id="loginCardDefault">
     <div class="login-brand">
       <div class="brand-mark">S</div>
       <span>SnapJob</span>
@@ -534,6 +534,43 @@
     <div class="login-toggle" id="loginToggle">
       Don't have an account? <a href="#" onclick="toggleAuthMode(); return false;">Sign up</a>
     </div>
+    <div class="login-toggle" id="forgotPasswordRow">
+      <a href="#" onclick="showForgotPasswordScreen(); return false;">Forgot password?</a>
+    </div>
+  </div>
+
+  <!-- ---- FORGOT PASSWORD: request reset email ---- -->
+  <div class="login-card hidden" id="loginCardForgot">
+    <div class="login-brand">
+      <div class="brand-mark">S</div>
+      <span>SnapJob</span>
+    </div>
+    <h2>Reset your password</h2>
+    <div class="sub">Enter your email and we'll send you a reset link.</div>
+
+    <div class="login-error" id="forgotError"></div>
+
+    <div class="login-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@business.com"></div>
+    <button class="login-submit" onclick="submitForgotPassword()">Send reset link</button>
+
+    <div class="login-toggle">
+      <a href="#" onclick="showLoginScreen(); return false;">Back to log in</a>
+    </div>
+  </div>
+
+  <!-- ---- SET NEW PASSWORD: shown after clicking the email link ---- -->
+  <div class="login-card hidden" id="loginCardNewPassword">
+    <div class="login-brand">
+      <div class="brand-mark">S</div>
+      <span>SnapJob</span>
+    </div>
+    <h2>Set a new password</h2>
+    <div class="sub">Choose a new password for your account.</div>
+
+    <div class="login-error" id="newPasswordError"></div>
+
+    <div class="login-field"><label>New password</label><input type="password" id="newPasswordInput" placeholder="At least 6 characters"></div>
+    <button class="login-submit" onclick="submitNewPassword()">Update password</button>
   </div>
 </div>
 
@@ -1026,8 +1063,13 @@
     await db.auth.signOut();
   }
 
+  // Tracks whether we're currently in the "set a new password" flow,
+  // so the generic session handler doesn't jump straight to the dashboard.
+  let inPasswordRecovery = false;
+
   // Called on page load and whenever auth state changes
   async function handleAuthState(session) {
+    if (inPasswordRecovery) return; // don't auto-redirect while resetting password
     if (!session) {
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('appRoot').classList.add('hidden');
@@ -1043,8 +1085,67 @@
     await loadAllData();
   }
 
-  db.auth.onAuthStateChange((_event, session) => handleAuthState(session));
+  db.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      inPasswordRecovery = true;
+      showNewPasswordScreen();
+      return;
+    }
+    handleAuthState(session);
+  });
   db.auth.getSession().then(({ data }) => handleAuthState(data.session));
+
+  // ---------- FORGOT / RESET PASSWORD ----------
+  function showLoginScreen() {
+    document.getElementById('loginCardDefault').classList.remove('hidden');
+    document.getElementById('loginCardForgot').classList.add('hidden');
+    document.getElementById('loginCardNewPassword').classList.add('hidden');
+  }
+
+  function showForgotPasswordScreen() {
+    document.getElementById('loginCardDefault').classList.add('hidden');
+    document.getElementById('loginCardForgot').classList.remove('hidden');
+    document.getElementById('loginCardNewPassword').classList.add('hidden');
+  }
+
+  function showNewPasswordScreen() {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('appRoot').classList.add('hidden');
+    document.getElementById('loginCardDefault').classList.add('hidden');
+    document.getElementById('loginCardForgot').classList.add('hidden');
+    document.getElementById('loginCardNewPassword').classList.remove('hidden');
+  }
+
+  async function submitForgotPassword() {
+    const errorEl = document.getElementById('forgotError');
+    errorEl.style.display = 'none';
+    const email = document.getElementById('forgotEmail').value.trim();
+    if (!email) { errorEl.textContent = 'Enter your email address.'; errorEl.style.display = 'block'; return; }
+
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    if (error) { errorEl.textContent = error.message; errorEl.style.display = 'block'; return; }
+
+    errorEl.style.color = 'var(--green)';
+    errorEl.textContent = "Check your email for a reset link. It may take a few minutes to arrive.";
+    errorEl.style.display = 'block';
+  }
+
+  async function submitNewPassword() {
+    const errorEl = document.getElementById('newPasswordError');
+    errorEl.style.display = 'none';
+    const password = document.getElementById('newPasswordInput').value;
+    if (!password || password.length < 6) { errorEl.textContent = 'Password must be at least 6 characters.'; errorEl.style.display = 'block'; return; }
+
+    const { error } = await db.auth.updateUser({ password });
+    if (error) { errorEl.textContent = error.message; errorEl.style.display = 'block'; return; }
+
+    inPasswordRecovery = false;
+    alert('Password updated. You are now logged in.');
+    const { data } = await db.auth.getSession();
+    await handleAuthState(data.session);
+  }
 
   // ============================================================
   // LOAD CURRENT BUSINESS  (the "currentBusiness" gating object)
