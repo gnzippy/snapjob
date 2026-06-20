@@ -512,7 +512,7 @@
 <script>
   const SUPABASE_URL = 'https://jjxvcglxxelknlhngumd.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_YzXalZXU7mmHOm36CE5ZBA_y5iwMqJj';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
 
 <!-- ============ LOGIN SCREEN ============ -->
@@ -917,17 +917,17 @@
     if (!email || !password) { showLoginError('Enter your email and password.'); return; }
 
     if (authMode === 'login') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await db.auth.signInWithPassword({ email, password });
       if (error) showLoginError(error.message);
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await db.auth.signUp({ email, password });
       if (error) showLoginError(error.message);
       else showLoginError("Account created — check your email to confirm, then log in.");
     }
   }
 
   async function logout() {
-    await supabase.auth.signOut();
+    await db.auth.signOut();
   }
 
   // Called on page load and whenever auth state changes
@@ -947,14 +947,14 @@
     await loadAllData();
   }
 
-  supabase.auth.onAuthStateChange((_event, session) => handleAuthState(session));
-  supabase.auth.getSession().then(({ data }) => handleAuthState(data.session));
+  db.auth.onAuthStateChange((_event, session) => handleAuthState(session));
+  db.auth.getSession().then(({ data }) => handleAuthState(data.session));
 
   // ============================================================
   // LOAD CURRENT BUSINESS  (the "currentBusiness" gating object)
   // ============================================================
   async function loadCurrentBusiness() {
-    const { data, error } = await supabase.from('businesses').select('*').single();
+    const { data, error } = await db.from('businesses').select('*').single();
     if (error) {
       console.error('Failed to load business:', error);
       return;
@@ -994,7 +994,7 @@
 
   // ---------- TECHNICIANS ----------
   async function loadTechnicians() {
-    const { data, error } = await supabase.from('technicians').select('*').order('name');
+    const { data, error } = await db.from('technicians').select('*').order('name');
     if (error) { console.error(error); return; }
     technicians = data || [];
     renderTechnicians();
@@ -1044,7 +1044,7 @@
     const name = document.getElementById('techName').value.trim();
     const phone = document.getElementById('techPhone').value.trim();
     if (!name || !phone) { alert('Name and phone are required.'); return; }
-    const { error } = await supabase.from('technicians').insert({
+    const { error } = await db.from('technicians').insert({
       business_id: currentBusiness.id, name, phone
     });
     if (error) { alert('Could not save technician: ' + error.message); return; }
@@ -1052,7 +1052,7 @@
     await loadTechnicians();
   }
   async function toggleTechnicianActive(id, currentlyActive) {
-    const { error } = await supabase.from('technicians').update({ active: !currentlyActive }).eq('id', id);
+    const { error } = await db.from('technicians').update({ active: !currentlyActive }).eq('id', id);
     if (error) { alert('Update failed: ' + error.message); return; }
     await loadTechnicians();
   }
@@ -1203,7 +1203,7 @@
         .from('customers').select('id').eq('phone', custPhone).maybeSingle();
       if (existing) {
         customerId = existing.id;
-        await supabase.from('customers').update({ name: custName }).eq('id', existing.id);
+        await db.from('customers').update({ name: custName }).eq('id', existing.id);
       } else {
         const { data: created, error: custErr } = await supabase
           .from('customers').insert({ business_id: currentBusiness.id, name: custName, phone: custPhone }).select().single();
@@ -1223,9 +1223,9 @@
 
     let error;
     if (panelJobId) {
-      ({ error } = await supabase.from('jobs').update(payload).eq('id', panelJobId));
+      ({ error } = await db.from('jobs').update(payload).eq('id', panelJobId));
     } else {
-      ({ error } = await supabase.from('jobs').insert(payload));
+      ({ error } = await db.from('jobs').insert(payload));
     }
     if (error) { alert('Could not save job: ' + error.message); return; }
 
@@ -1237,9 +1237,9 @@
 
   // ---------- CUSTOMERS ----------
   async function loadCustomers() {
-    const { data: customers, error } = await supabase.from('customers').select('*').order('name');
+    const { data: customers, error } = await db.from('customers').select('*').order('name');
     if (error) { console.error(error); return; }
-    const { data: paidJobs } = await supabase.from('jobs').select('customer_id, amount').eq('status', 'paid');
+    const { data: paidJobs } = await db.from('jobs').select('customer_id, amount').eq('status', 'paid');
 
     const body = document.getElementById('customersBody');
     if (!customers || !customers.length) {
@@ -1316,7 +1316,7 @@
   async function saveBusinessDetails() {
     const postal = document.getElementById('postalCode');
     if (!validatePostalCode(postal)) { postal.focus(); return; }
-    const { error } = await supabase.from('businesses').update({
+    const { error } = await db.from('businesses').update({
       name: document.getElementById('bizName').value.trim(),
       uen: document.getElementById('bizUen').value.trim(),
       phone: document.getElementById('bizPhone').value.trim(),
@@ -1329,7 +1329,7 @@
   }
 
   async function saveInvoiceFooter() {
-    const { error } = await supabase.from('businesses').update({
+    const { error } = await db.from('businesses').update({
       invoice_footer: document.getElementById('bizFooter').value
     }).eq('id', currentBusiness.id);
     if (error) { alert('Could not save: ' + error.message); return; }
