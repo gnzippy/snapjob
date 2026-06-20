@@ -3,471 +3,1748 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SnapJob — WhatsApp Job Management for Trade Businesses</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<title>SnapJob — Job Management Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <style>
-:root{--navy:#090f1e;--navy2:#111827;--blue:#1AABFF;--bd:rgba(26,171,255,0.12);--bb:rgba(26,171,255,0.25);--white:#fff;--grey:#8899aa;--card:#111c2e;--brd:rgba(255,255,255,0.07);--green:#25D366;--amber:#f59e0b;--emerald:#34d399}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Poppins',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(9,15,30,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--brd)}
-.nav-logo{font-family:'Poppins',sans-serif;font-size:19px;font-weight:800}
-.nav-logo span{color:var(--blue)}
-.nav-links{display:flex;align-items:center;gap:24px}
-.nav-links a{font-size:13px;color:var(--grey);text-decoration:none;transition:color .2s}
-.nav-links a:hover{color:var(--white)}
-.nav-cta{background:var(--blue);color:var(--navy);font-size:13px;font-weight:700;padding:9px 20px;border-radius:8px;text-decoration:none}
-@media(max-width:600px){.nav-links{display:none}}
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:100px 24px 60px;position:relative;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 20%,rgba(26,171,255,0.1) 0%,transparent 70%)}
-.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,171,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(26,171,255,0.03) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%)}
-.pill{display:inline-flex;align-items:center;gap:7px;background:var(--bd);border:1px solid var(--bb);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--blue);margin-bottom:22px}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--blue);animation:blink 2s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-h1{font-family:'Poppins',sans-serif;font-size:clamp(34px,7vw,68px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:18px;max-width:820px}
-h1 span{color:var(--blue)}
-.hero-sub{font-size:clamp(15px,2vw,18px);color:var(--grey);line-height:1.7;max-width:520px;margin:0 auto 32px}
-.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
-.btn-p{background:var(--blue);color:var(--navy);font-size:15px;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;font-family:'Poppins',sans-serif}
-.btn-s{background:transparent;color:var(--white);font-size:15px;font-weight:600;padding:14px 28px;border-radius:10px;text-decoration:none;border:1px solid rgba(255,255,255,.15)}
-.wa-mock{background:#1a2535;border-radius:20px;padding:14px;border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 60px rgba(0,0,0,.5);max-width:290px;margin:0 auto}
-.wa-head{background:#075e54;border-radius:10px 10px 0 0;padding:10px 12px;display:flex;align-items:center;gap:8px;margin:-14px -14px 0}
-.wa-av{width:32px;height:32px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
-.wa-nm{font-size:13px;font-weight:600}
-.wa-st{font-size:10px;color:rgba(255,255,255,.6)}
-.wa-body{padding:12px 0 6px}
-.wa-msg{margin-bottom:8px}
-.wa-in{display:inline-block;background:#1e2d3d;padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.5;color:#e8eaed;max-width:85%}
-.wa-out{display:block;background:#005c4b;padding:8px 11px;border-radius:10px;font-size:12px;line-height:1.5;color:#fff;max-width:85%;margin-left:auto}
-.wa-time{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px}
-.wa-div{text-align:center;font-size:10px;color:var(--grey);margin:6px 0;background:rgba(255,255,255,.04);border-radius:5px;padding:3px 6px}
-.typing{display:flex;gap:4px;align-items:center;padding:8px 11px;background:#1e2d3d;border-radius:10px;width:fit-content}
-.typing span{width:5px;height:5px;border-radius:50%;background:var(--grey);animation:typ 1.2s infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
-@keyframes typ{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
-.job-pop{position:absolute;right:-14px;top:50px;background:var(--card);border:1px solid var(--bb);border-radius:12px;padding:12px;width:155px;box-shadow:0 16px 32px rgba(0,0,0,.5)}
-.jp-lbl{font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;display:flex;align-items:center;gap:4px}
-.jp-d{width:5px;height:5px;border-radius:50%;background:var(--blue);animation:blink 1.5s infinite}
-.proof-bar{display:flex;gap:28px;align-items:center;justify-content:center;flex-wrap:wrap;padding:14px 24px;background:rgba(255,255,255,.02);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)}
-.proof-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--grey)}
-section{padding:80px 24px}
-.inner{max-width:1100px;margin:0 auto}
-.tag{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
-.h2{font-family:'Poppins',sans-serif;font-size:clamp(26px,4vw,40px);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:14px}
-.sub{font-size:16px;color:var(--grey);line-height:1.7;max-width:540px}
-.trades{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-top:36px}
-.trade{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:18px;text-align:center;transition:all .2s}
-.trade:hover{border-color:var(--bb);transform:translateY(-2px)}
-.trade-icon{font-size:28px;margin-bottom:8px}
-.trade-name{font-size:13px;font-weight:600;margin-bottom:3px}
-.trade-desc{font-size:11px;color:var(--grey)}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:40px}
-.step{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:22px;position:relative;overflow:hidden;transition:border-color .2s}
-.step:hover{border-color:var(--bb)}
-.step-num{font-family:'Poppins',sans-serif;font-size:44px;font-weight:800;color:rgba(26,171,255,.07);position:absolute;top:10px;right:14px;line-height:1}
-.step-icon{width:40px;height:40px;background:var(--bd);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:20px}
-.step-title{font-size:14px;font-weight:700;margin-bottom:7px}
-.step-desc{font-size:12px;color:var(--grey);line-height:1.6}
-.guide-steps{display:flex;flex-direction:column;gap:0;margin-top:40px;max-width:620px}
-.gs{display:flex;gap:16px;align-items:flex-start;padding:20px 0;border-bottom:1px solid var(--brd)}
-.gs:last-child{border-bottom:none}
-.gs-num{width:36px;height:36px;border-radius:50%;background:var(--blue);color:var(--navy);font-family:'Poppins',sans-serif;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-.gs-title{font-size:15px;font-weight:700;margin-bottom:5px}
-.gs-desc{font-size:13px;color:var(--grey);line-height:1.6}
-.gs-time{font-size:11px;color:var(--blue);font-weight:600;margin-top:5px}
-.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:40px}
-.feat{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:22px}
-.feat-icon{width:38px;height:38px;background:var(--bd);border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
-.feat-title{font-size:14px;font-weight:700;margin-bottom:6px}
-.feat-desc{font-size:12px;color:var(--grey);line-height:1.6}
+  :root {
+    --ink: #0F172A;
+    --ink-soft: #475569;
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    --blue: #2563EB;
+    --blue-soft: #EFF6FF;
+    --amber: #F59E0B;
+    --amber-soft: #FFFBEB;
+    --green: #16A34A;
+    --green-soft: #F0FDF4;
+    --red: #DC2626;
+    --red-soft: #FEF2F2;
+    --slate: #64748B;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 2px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.08);
+    --shadow-lg: 0 10px 30px rgba(15,23,42,0.18);
+  }
 
-/* ROI CALCULATOR */
-.calc-wrap{background:var(--card);border:1px solid var(--bb);border-radius:20px;padding:32px;max-width:780px;margin:40px auto 0}
-.calc-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.calc-label{font-size:12px;font-weight:600;color:var(--grey);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
-.calc-val{font-size:13px;color:var(--grey);margin-bottom:8px}
-input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}
-.calc-num{font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;color:var(--blue)}
-.calc-result{background:linear-gradient(135deg,#0d2040,#0a1628);border:1px solid var(--blue);border-radius:14px;padding:24px;margin-top:24px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center}
-.cr-val{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;margin-bottom:4px}
-.cr-label{font-size:11px;color:var(--grey)}
-.cr-breakdown{margin-top:16px;font-size:12px;color:var(--grey);line-height:1.8;border-top:1px solid var(--brd);padding-top:14px;text-align:left}
-.cr-breakdown strong{color:var(--white)}
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
 
-/* PRICING */
-.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:40px;max-width:860px;margin-left:auto;margin-right:auto}
-.plan{background:var(--card);border:1px solid var(--brd);border-radius:18px;padding:26px;position:relative}
-.plan.hot{border-color:var(--blue);background:linear-gradient(135deg,#111c2e,#0d2040)}
-.plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--blue);color:var(--navy);font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;white-space:nowrap}
-.plan-name{font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;margin-bottom:5px}
-.plan-price{font-family:'Poppins',sans-serif;font-size:32px;font-weight:800;margin-bottom:3px}
-.plan-trial{font-size:12px;color:var(--blue);font-weight:600;margin-bottom:5px}
-.plan-desc{font-size:12px;color:var(--grey);margin-bottom:18px;line-height:1.5}
-.plan-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:22px}
-.plan-features li{font-size:12px;color:var(--grey);display:flex;align-items:flex-start;gap:7px;line-height:1.4}
-.plan-features li::before{content:'✓';color:var(--blue);font-weight:700;flex-shrink:0;margin-top:1px}
-.plan-cta{width:100%;background:var(--blue);color:var(--navy);font-size:13px;font-weight:700;padding:12px;border-radius:9px;border:none;cursor:pointer;font-family:'Poppins',sans-serif;text-decoration:none;display:block;text-align:center}
-.plan-cta.out{background:transparent;color:var(--white);border:1px solid var(--brd)}
-.testi{background:var(--card);border:1px solid var(--bb);border-radius:18px;padding:28px;max-width:640px;margin:40px auto 0}
-.stars{color:var(--blue);font-size:13px;margin-bottom:10px}
-.testi-text{font-size:clamp(15px,2.2vw,17px);color:var(--white);line-height:1.6;margin-bottom:18px;font-style:italic}
-.testi-author{display:flex;align-items:center;gap:10px}
-.testi-av{width:40px;height:40px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
-.testi-name{font-size:13px;font-weight:700}
-.testi-role{font-size:11px;color:var(--grey);margin-top:2px}
-.cta-sec{background:linear-gradient(135deg,#0d1f3c,#091020);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd);padding:80px 24px;text-align:center}
-.cta-sec h2{font-family:'Poppins',sans-serif;font-size:clamp(26px,5vw,44px);font-weight:800;letter-spacing:-1px;margin-bottom:14px}
-.cta-sec p{font-size:16px;color:var(--grey);margin-bottom:28px}
-footer{padding:28px 24px;text-align:center;border-top:1px solid var(--brd)}
-footer p{font-size:12px;color:var(--grey)}
-footer a{color:var(--grey);text-decoration:none}
-.fiu{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
-.fiu.vis{opacity:1;transform:none}
-@media(max-width:700px){.calc-row{grid-template-columns:1fr}.calc-result{grid-template-columns:1fr 1fr}}
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .num { font-family: "SF Mono", "Roboto Mono", ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+
+  /* ---------- LAYOUT ---------- */
+  .app {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar {
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 14px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 24px;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: -0.02em;
+  }
+  .brand-mark {
+    width: 28px; height: 28px;
+    background: var(--blue);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 900;
+  }
+  .nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    color: #CBD5E1;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.12s, color 0.12s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .nav-item.active { background: var(--blue); color: #fff; }
+  .nav-icon { width: 18px; flex-shrink: 0; display: flex; }
+  .nav-icon svg { width: 18px; height: 18px; }
+
+  .trial-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    padding: 12px;
+    font-size: 12px;
+    color: #CBD5E1;
+    margin-top: 12px;
+  }
+  .trial-card strong { color: #fff; display: block; font-size: 13px; margin-bottom: 4px; }
+  .trial-bar { height: 5px; background: rgba(255,255,255,0.12); border-radius: 3px; margin: 8px 0; overflow: hidden; }
+  .trial-bar-fill { height: 100%; background: var(--amber); width: 62%; }
+  .trial-card button {
+    width: 100%; margin-top: 6px;
+    background: var(--blue); color: #fff; border: none;
+    padding: 8px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+  }
+
+  /* ---------- MAIN ---------- */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 20;
+  }
+  .topbar h1 { font-size: 19px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .icon-btn svg { width: 18px; height: 18px; color: var(--ink-soft); }
+  .alert-dot {
+    position: absolute; top: -3px; right: -3px;
+    width: 9px; height: 9px; background: var(--red);
+    border-radius: 50%; border: 2px solid var(--surface);
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--blue-soft); color: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+
+  .content { padding: 24px 28px; flex: 1; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ---------- BANNER ---------- */
+  .banner {
+    background: var(--amber-soft);
+    border: 1px solid #FDE68A;
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+  }
+  .banner-left { display: flex; align-items: center; gap: 10px; }
+  .banner-left svg { width: 18px; height: 18px; color: var(--amber); flex-shrink: 0; }
+  .banner strong { font-weight: 700; }
+  .banner-cta {
+    background: var(--ink); color: #fff; border: none;
+    padding: 7px 14px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600; white-space: nowrap;
+  }
+
+  /* ---------- KANBAN ---------- */
+  .board-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .board-header h1 { font-size: 19px; font-weight: 700; }
+  .btn-primary {
+    background: var(--blue); color: #fff; border: none;
+    padding: 9px 16px; border-radius: var(--radius-sm);
+    font-size: 13.5px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(230px, 1fr));
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .col {
+    background: #EEF1F6;
+    border-radius: var(--radius);
+    padding: 10px;
+    min-height: 200px;
+  }
+  .col-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 6px 10px;
+    font-size: 12.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--ink-soft);
+  }
+  .col-count {
+    background: rgba(15,23,42,0.08);
+    border-radius: 20px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .col[data-status="new"] .col-head { color: var(--slate); }
+  .col[data-status="assigned"] .col-head { color: var(--blue); }
+  .col[data-status="progress"] .col-head { color: var(--amber); }
+  .col[data-status="done"] .col-head { color: #0EA5A0; }
+  .col[data-status="paid"] .col-head { color: var(--green); }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-left: 3px solid var(--slate);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+  .col[data-status="new"] .card { border-left-color: var(--slate); }
+  .col[data-status="assigned"] .card { border-left-color: var(--blue); }
+  .col[data-status="progress"] .card { border-left-color: var(--amber); }
+  .col[data-status="done"] .card { border-left-color: #0EA5A0; }
+  .col[data-status="paid"] .card { border-left-color: var(--green); }
+
+  .card-list { min-height: 60px; }
+  .card { cursor: grab; }
+  .card:active { cursor: grabbing; }
+  .card-sub { font-size: 12px; color: var(--ink-soft); margin-bottom: 8px; }
+  .card-foot { display: flex; align-items: center; justify-content: space-between; }
+  .card-tech {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11.5px; color: var(--ink-soft); font-weight: 600;
+  }
+  .tech-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--blue-soft); color: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800;
+  }
+  .card-call {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--green-soft);
+    display: flex; align-items: center; justify-content: center;
+    border: none;
+  }
+  .card-call svg { width: 13px; height: 13px; color: var(--green); }
+  .card-amount { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .card-unassigned { color: var(--red); font-style: normal; }
+
+  /* ---------- TABLE PAGES (Technicians / Customers) ---------- */
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .page-header h1 { font-size: 19px; font-weight: 700; }
+  .search-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .search-input {
+    flex: 1; max-width: 320px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 13.5px;
+    background: var(--surface);
+  }
+  .search-input:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+
+  .table-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--slate); font-weight: 700;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #FAFBFC;
+  }
+  td {
+    padding: 13px 16px;
+    font-size: 13.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.row-clickable:hover { background: #FAFBFC; cursor: pointer; }
+
+  .pill { padding: 3px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 700; display: inline-block; }
+  .pill-active { background: var(--green-soft); color: var(--green); }
+  .pill-paid { background: var(--green-soft); color: var(--green); }
+  .pill-unpaid { background: var(--red-soft); color: var(--red); }
+  .pill-overdue { background: var(--red-soft); color: var(--red); }
+
+  .phone-link { color: var(--blue); font-weight: 600; }
+  .name-cell { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  .row-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--blue-soft); color: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; flex-shrink: 0;
+  }
+  .text-right { text-align: right; }
+  .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .mini-btn {
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: var(--radius-sm); padding: 5px 10px;
+    font-size: 12px; font-weight: 600; color: var(--ink-soft);
+  }
+  .mini-btn:hover { background: #F1F5F9; }
+
+  /* ---------- INVOICES ---------- */
+  .invoice-toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .select-input {
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 12px; font-size: 13.5px; background: var(--surface); color: var(--ink-soft);
+  }
+
+  /* ---------- EMPTY STATES ---------- */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--ink-soft);
+  }
+  .empty-state svg { width: 40px; height: 40px; color: #CBD5E1; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 15px; color: var(--ink); margin: 0 0 4px; }
+  .empty-state p { font-size: 13px; margin: 0; }
+
+  /* ---------- SETTINGS ---------- */
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 760px; }
+  .settings-card {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px;
+  }
+  .settings-card.full { grid-column: 1 / -1; }
+  .settings-card h3 { font-size: 14px; margin: 0 0 14px; font-weight: 700; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .field input, .field textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 11px; font-size: 13.5px; font-family: inherit;
+  }
+  .field input:focus, .field textarea:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+  .upload-box {
+    border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+    padding: 20px; text-align: center; color: var(--slate); font-size: 12.5px;
+    cursor: pointer;
+  }
+  .upload-box:hover { border-color: var(--blue); color: var(--blue); }
+  .save-btn {
+    background: var(--blue); color: #fff; border: none;
+    padding: 10px 20px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600;
+  }
+
+  /* ---------- ALERTS DRAWER (RIGHT SIDE) ---------- */
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.35);
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    z-index: 40;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 360px; max-width: 90vw;
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    z-index: 41;
+    display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-head {
+    padding: 18px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .drawer-head h2 { font-size: 16px; font-weight: 700; margin: 0; }
+  .drawer-close { background: none; border: none; padding: 4px; color: var(--slate); }
+  .drawer-close svg { width: 20px; height: 20px; }
+
+  .drawer-body { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .alert-item { padding: 14px 20px; border-bottom: 1px solid #F1F5F9; display: flex; gap: 12px; }
+  .alert-icon {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .alert-icon svg { width: 15px; height: 15px; }
+  .alert-icon.info { background: var(--blue-soft); color: var(--blue); }
+  .alert-icon.warn { background: var(--amber-soft); color: var(--amber); }
+  .alert-icon.success { background: var(--green-soft); color: var(--green); }
+  .alert-text { font-size: 13px; line-height: 1.4; }
+  .alert-text strong { font-weight: 700; }
+  .alert-time { font-size: 11.5px; color: var(--slate); margin-top: 3px; }
+
+  /* ---------- JOB DETAIL SIDE PANEL ---------- */
+  .panel-overlay {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.35);
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    z-index: 50;
+  }
+  .panel-overlay.open { opacity: 1; pointer-events: auto; }
+  .panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 420px; max-width: 92vw;
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    z-index: 51;
+    display: flex; flex-direction: column;
+  }
+  .panel.open { transform: translateX(0); }
+  .panel-head {
+    padding: 18px 22px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .panel-head h2 { font-size: 17px; font-weight: 700; margin: 0 0 4px; }
+  .panel-head .sub { font-size: 12.5px; color: var(--slate); }
+  .panel-body { flex: 1; overflow-y: auto; padding: 20px 22px; }
+  .panel-section { margin-bottom: 22px; }
+  .panel-section h4 {
+    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--slate); font-weight: 700; margin: 0 0 10px;
+  }
+  .panel-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; font-size: 13.5px; }
+  .panel-row .label { color: var(--ink-soft); }
+  .call-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--green-soft); color: var(--green);
+    border: none; padding: 7px 12px; border-radius: var(--radius-sm);
+    font-size: 12.5px; font-weight: 700;
+  }
+  .call-btn svg { width: 13px; height: 13px; }
+  .status-select {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 9px 11px; font-size: 13.5px; font-weight: 600; background: var(--surface);
+  }
+  .tech-select { width: 100%; }
+  .panel-footer {
+    padding: 16px 22px; border-top: 1px solid var(--border);
+    display: flex; gap: 10px;
+  }
+  .panel-footer button { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600; }
+  .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--ink-soft); }
+
+  /* ---------- MOBILE ---------- */
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 64px 1fr; }
+    .sidebar { padding: 16px 8px; align-items: center; }
+    .brand span.brand-text { display: none; }
+    .nav-item span.nav-text { display: none; }
+    .nav-item { justify-content: center; padding: 12px 0; }
+    .trial-card { display: none; }
+    .content { padding: 16px; }
+    .board { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 78vw; scroll-snap-type: x mandatory; }
+    .col { scroll-snap-align: start; }
+    .settings-grid { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 16px; }
+  }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  /* ---------- LOGIN SCREEN ---------- */
+  .login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: var(--ink); padding: 20px;
+  }
+  .login-card {
+    background: var(--surface); border-radius: 16px; padding: 36px 32px;
+    width: 100%; max-width: 380px; box-shadow: var(--shadow-lg);
+  }
+  .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; font-weight: 800; font-size: 19px; }
+  .login-card h2 { font-size: 17px; margin: 0 0 4px; }
+  .login-card .sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 22px; }
+  .login-field { margin-bottom: 12px; }
+  .login-field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .login-field input {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 10px 12px; font-size: 13.5px; font-family: inherit;
+  }
+  .login-field input:focus { outline: 2px solid var(--blue); outline-offset: -1px; }
+  .login-submit {
+    width: 100%; background: var(--blue); color: #fff; border: none;
+    padding: 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 700;
+    margin-top: 4px;
+  }
+  .login-toggle { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-top: 16px; }
+  .login-toggle a { color: var(--blue); font-weight: 600; }
+  .login-error { background: var(--red-soft); color: var(--red); font-size: 12.5px; padding: 9px 12px; border-radius: var(--radius-sm); margin-bottom: 14px; display: none; }
+  .login-loading { text-align: center; color: var(--slate); font-size: 13px; padding: 40px 0; }
+  .hidden { display: none !important; }
+  .sortable-ghost { opacity: 0.4; }
+  .sortable-drag { box-shadow: var(--shadow-lg) !important; }
+
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">Snap<span>Job</span></div>
-  <div class="nav-links">
-    <a href="#how">How it works</a>
-    <a href="#guide">Get started</a>
-    <a href="#savings">Savings</a>
-    <a href="#pricing">Pricing</a>
-  </div>
-  <a class="nav-cta" href="/dashboard.html">Log in</a>
-</nav>
+<!-- ============ CONFIG ============ -->
+<!-- Paste your Supabase project URL and anon key here after running schema.sql -->
+<script>
+  const SUPABASE_URL = 'https://jjxvcglxxelknlhngumd.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_YzXalZXU7mmHOm36CE5ZBA_y5iwMqJj';
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-grid"></div>
-  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center">
-    <div class="pill"><span class="dot"></span>Built for trades in Southeast Asia</div>
-    <h1>Stop managing jobs<br>in <span>WhatsApp groups</span></h1>
-    <p class="hero-sub">SnapJob gives trade businesses a simple dashboard to track jobs, assign technicians, and send professional invoices — all in one place.</p>
-    <div class="btns">
-      <a class="btn-p" href="/dashboard.html">Get started free</a>
-      <a class="btn-s" href="#how">See how it works</a>
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-mark">S</div>
+      <span>SnapJob</span>
     </div>
-    <div style="position:relative;max-width:290px;width:100%;margin:0 auto">
-      <div class="wa-mock">
-        <div class="wa-head">
-          <div class="wa-av">❄️</div>
-          <div><div class="wa-nm">Chillops Aircon</div><div class="wa-st">SnapJob dashboard</div></div>
-        </div>
-        <div class="wa-body">
-          <div class="wa-msg"><div class="wa-in">Hi, my aircon is leaking and not cooling. I'm at Tampines St 21 #08-12</div><div class="wa-time">2:14 PM</div></div>
-          <div class="wa-div">SnapJob created Job #1043 ⚡</div>
-          <div class="wa-msg" style="text-align:right"><div class="wa-out">Hi! We've received your request. Our team will confirm shortly 🙏</div><div class="wa-time" style="text-align:right">2:14 PM ✓✓</div></div>
-          <div style="margin-top:8px"><div class="typing"><span></span><span></span><span></span></div><div style="font-size:10px;color:var(--grey);margin-top:3px">New job card created ✓</div></div>
-        </div>
-      </div>
-      <div class="job-pop">
-        <div class="jp-lbl"><span class="jp-d"></span>New job</div>
-        <div style="font-size:12px;font-weight:600;margin-bottom:3px">David Tan</div>
-        <div style="font-size:11px;color:var(--grey);margin-bottom:7px">Aircon leaking · Tampines</div>
-        <div style="background:var(--blue);color:var(--navy);font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px">Assign now →</div>
-      </div>
+    <h2 id="loginTitle">Log in to your dashboard</h2>
+    <div class="sub" id="loginSub">Manage your jobs, technicians, and invoices.</div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@business.com"></div>
+    <div class="login-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+    <button class="login-submit" id="loginSubmitBtn" onclick="submitEmailAuth()">Log in</button>
+
+    <div class="login-toggle" id="loginToggle">
+      Don't have an account? <a href="#" onclick="toggleAuthMode(); return false;">Sign up</a>
     </div>
   </div>
-</section>
-
-<!-- PROOF BAR -->
-<div class="proof-bar">
-  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Simple 10-minute setup</div>
-  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>10-minute setup</div>
-  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Works on any device</div>
-  <div class="proof-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Free for 3 months</div>
 </div>
 
-<!-- WHO -->
-<section>
-  <div class="inner">
-    <div class="tag fiu">Who it's for</div>
-    <div class="h2 fiu">Built for every trade business</div>
-    <div class="trades">
-      <div class="trade fiu"><div class="trade-icon">❄️</div><div class="trade-name">Aircon</div><div class="trade-desc">Servicing & repair</div></div>
-      <div class="trade fiu"><div class="trade-icon">🔧</div><div class="trade-name">Plumbing</div><div class="trade-desc">Installation & repair</div></div>
-      <div class="trade fiu"><div class="trade-icon">⚡</div><div class="trade-name">Electrical</div><div class="trade-desc">Wiring & fixtures</div></div>
-      <div class="trade fiu"><div class="trade-icon">🏠</div><div class="trade-name">Renovation</div><div class="trade-desc">Works & maintenance</div></div>
-      <div class="trade fiu"><div class="trade-icon">🧺</div><div class="trade-name">Appliance</div><div class="trade-desc">Washing machine, fridge...</div></div>
-      <div class="trade fiu"><div class="trade-icon">🧹</div><div class="trade-name">Cleaning</div><div class="trade-desc">Home & commercial</div></div>
+<!-- ============ APP (hidden until logged in) ============ -->
+<div class="app hidden" id="appRoot">
+
+  <!-- ============ SIDEBAR ============ -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <span class="brand-text">SnapJob</span>
+    </div>
+    <div class="nav">
+      <button class="nav-item active" data-page="board" onclick="goTo('board')">
+        <span class="nav-icon">⊞</span><span class="nav-text">Jobs</span>
+      </button>
+      <button class="nav-item" data-page="technicians" onclick="goTo('technicians')">
+        <span class="nav-icon">👷</span><span class="nav-text">Technicians</span>
+      </button>
+      <button class="nav-item" data-page="invoices" onclick="goTo('invoices')">
+        <span class="nav-icon">🧾</span><span class="nav-text">Invoices</span>
+      </button>
+      <button class="nav-item" data-page="customers" onclick="goTo('customers')">
+        <span class="nav-icon">👥</span><span class="nav-text">Customers</span>
+      </button>
+      <button class="nav-item" data-page="archive" onclick="goTo('archive')">
+        <span class="nav-icon">🗄</span><span class="nav-text">Archive</span>
+      </button>
+      <button class="nav-item" data-page="settings" onclick="goTo('settings')">
+        <span class="nav-icon">⚙</span><span class="nav-text">Settings</span>
+      </button>
+    </div>
+    <div class="trial-card">
+      <strong>Free trial — Day 56 of 90</strong>
+      Upgrade anytime to keep your data after day 90.
+      <div class="trial-bar"><div class="trial-bar-fill"></div></div>
+      <button onclick="alert('Upgrade flow goes here — connect to billing later.')">Upgrade plan</button>
+    </div>
+  </nav>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="topbarTitle">Jobs</h1>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="openDrawer()" aria-label="Open alerts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="alert-dot"></span>
+        </button>
+        <div class="avatar" id="userAvatar">CO</div>
+        <button class="mini-btn" onclick="logout()" style="margin-left:4px;">Log out</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- TRIAL BANNER (shown across all pages) -->
+      <div class="banner" id="trialBanner">
+        <div class="banner-left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          <span><strong>34 days left</strong> in your free trial. Add your PayNow QR in Settings so customers can pay you faster.</span>
+        </div>
+        <button class="banner-cta" onclick="alert('Upgrade flow goes here.')">Upgrade now</button>
+      </div>
+
+      <!-- ============ PAGE: KANBAN BOARD ============ -->
+      <div class="page active" id="page-board">
+        <div class="board-header">
+          <h1>Jobs</h1>
+          <button class="btn-primary" onclick="openNewJob()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            New job
+          </button>
+        </div>
+
+        <div class="board">
+          <div class="col" data-status="new">
+            <div class="col-head"><span>New</span><span class="col-count" id="count-new">0</span></div>
+            <div class="card-list" id="col-new" data-status="new"></div>
+          </div>
+          <div class="col" data-status="assigned">
+            <div class="col-head"><span>Assigned</span><span class="col-count" id="count-assigned">0</span></div>
+            <div class="card-list" id="col-assigned" data-status="assigned"></div>
+          </div>
+          <div class="col" data-status="progress">
+            <div class="col-head"><span>In Progress</span><span class="col-count" id="count-progress">0</span></div>
+            <div class="card-list" id="col-progress" data-status="progress"></div>
+          </div>
+          <div class="col" data-status="done">
+            <div class="col-head"><span>Done</span><span class="col-count" id="count-done">0</span></div>
+            <div class="card-list" id="col-done" data-status="done"></div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; color:var(--slate); margin-top:14px;">Paid jobs move automatically to the <a href="#" onclick="goTo('archive'); return false;" style="color:var(--blue); font-weight:600;">Archive</a> and drop off this board.</p>
+      </div>
+
+      <!-- ============ PAGE: TECHNICIANS ============ -->
+      <div class="page" id="page-technicians">
+        <div class="page-header">
+          <h1>Technicians</h1>
+          <button class="btn-primary" onclick="openAddTechnician()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add technician
+          </button>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>Name</th><th>Phone</th><th>Active jobs</th><th>Status</th><th></th></tr></thead>
+            <tbody id="techniciansBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ PAGE: INVOICES ============ -->
+      <div class="page" id="page-invoices">
+        <div class="page-header">
+          <h1>Invoices</h1>
+          <div style="display:flex; gap:10px;">
+            <button class="mini-btn" onclick="exportTableToExcel('invoicesTable', 'invoices.xlsx')">
+              ⬇ Export to Excel
+            </button>
+            <button class="btn-primary" onclick="openNewInvoice()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              New invoice
+            </button>
+          </div>
+        </div>
+        <div class="invoice-toolbar">
+          <input class="search-input" placeholder="Search invoice # or customer name">
+          <select class="select-input"><option>June 2026</option><option>May 2026</option><option>April 2026</option></select>
+          <select class="select-input"><option>All statuses</option><option>Paid</option><option>Unpaid</option><option>Overdue</option></select>
+        </div>
+        <div class="table-card">
+          <table id="invoicesTable">
+            <thead><tr><th>Invoice #</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <tbody id="invoicesBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ PAGE: CUSTOMERS ============ -->
+      <div class="page" id="page-customers">
+        <div class="page-header">
+          <h1>Customers</h1>
+          <button class="mini-btn" onclick="exportTableToExcel('customersTable', 'customers.xlsx')">
+            ⬇ Export to Excel
+          </button>
+        </div>
+        <div class="search-row">
+          <input class="search-input" placeholder="Search customers">
+        </div>
+        <div class="table-card">
+          <table id="customersTable">
+            <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Past jobs</th><th>Lifetime value</th></tr></thead>
+            <tbody id="customersBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ PAGE: ARCHIVE ============ -->
+      <div class="page" id="page-archive">
+        <div class="page-header">
+          <h1>Archive</h1>
+          <button class="mini-btn" onclick="exportTableToExcel('archiveTable', 'paid-jobs-archive.xlsx')">
+            ⬇ Export to Excel
+          </button>
+        </div>
+        <p style="font-size:13px; color:var(--ink-soft); margin:-6px 0 16px;">Jobs marked <strong>Paid</strong> land here automatically and are kept permanently, even after they leave the Jobs board.</p>
+        <div class="search-row">
+          <input class="search-input" placeholder="Search archived jobs">
+          <select class="select-input"><option>All time</option><option>This month</option><option>Last month</option><option>This year</option></select>
+        </div>
+        <div class="table-card">
+          <table id="archiveTable">
+            <thead><tr><th>Job</th><th>Customer</th><th>Technician</th><th>Date paid</th><th>Amount</th><th>Invoice #</th></tr></thead>
+            <tbody id="archiveBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ PAGE: SETTINGS ============ -->
+      <div class="page" id="page-settings">
+        <div class="page-header"><h1>Settings</h1></div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Business details</h3>
+            <div class="field"><label>Business name</label><input id="bizName" value=""></div>
+            <div class="field"><label>UEN</label><input id="bizUen" value="" placeholder="e.g. 201912345A" maxlength="10"></div>
+            <div class="field"><label>Contact phone</label><input id="bizPhone" value=""></div>
+            <div class="field"><label>Address</label><input id="bizAddress" value=""></div>
+            <div class="field">
+              <label>Postal code <span style="color:var(--red);">*</span></label>
+              <input id="postalCode" value="" maxlength="6" inputmode="numeric" required oninput="this.value=this.value.replace(/[^0-9]/g,'')" onblur="validatePostalCode(this)">
+              <div id="postalError" style="display:none; color:var(--red); font-size:11.5px; margin-top:4px;">Postal code is required and must be 6 digits.</div>
+            </div>
+            <button class="save-btn" onclick="saveBusinessDetails()">Save changes</button>
+          </div>
+          <div class="settings-card">
+            <h3>Branding</h3>
+            <div class="field">
+              <label>Business logo</label>
+              <input type="file" id="logoFileInput" accept="image/png,image/jpeg" style="display:none;" onchange="handleFileUpload(this, 'logo')">
+              <div class="upload-box" id="logoUploadBox" onclick="document.getElementById('logoFileInput').click()">Click to upload logo (PNG/JPG)</div>
+            </div>
+            <div class="field">
+              <label>PayNow QR code</label>
+              <input type="file" id="paynowFileInput" accept="image/png,image/jpeg" style="display:none;" onchange="handleFileUpload(this, 'paynow')">
+              <div class="upload-box" id="paynowUploadBox" onclick="document.getElementById('paynowFileInput').click()">Click to upload PayNow QR</div>
+            </div>
+          </div>
+          <div class="settings-card full">
+            <h3>Invoice footer text</h3>
+            <div class="field">
+              <textarea id="bizFooter" rows="3"></textarea>
+            </div>
+            <button class="save-btn" onclick="saveInvoiceFooter()">Save changes</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
-</section>
+</div>
 
-<!-- HOW IT WORKS -->
-<section id="how" style="background:rgba(255,255,255,.02);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)">
-  <div class="inner">
-    <div class="tag fiu">How it works</div>
-    <div class="h2 fiu">Simple for everyone.</div>
-    <div class="sub fiu">Owner manages on dashboard. Technicians work on WhatsApp. Customers get professional invoices.</div>
-    <div class="steps">
-      <div class="step fiu"><div class="step-num">1</div><div class="step-icon">📋</div><div class="step-title">Create a job card</div><div class="step-desc">Add a job manually from a call, walk-in, or WhatsApp message. Fill in customer name, address, and what needs to be done.</div></div>
-      <div class="step fiu"><div class="step-num">2</div><div class="step-icon">👆</div><div class="step-title">Assign to technician</div><div class="step-desc">Tap to assign from your dashboard. Their phone number appears so you can call or text them directly.</div></div>
-      <div class="step fiu"><div class="step-num">3</div><div class="step-icon">📊</div><div class="step-title">Track on your dashboard</div><div class="step-desc">See all jobs on a Kanban board — New, Assigned, In Progress, Done, Paid. Drag to update status. Everything in one place.</div></div>
-      <div class="step fiu"><div class="step-num">4</div><div class="step-icon">🧾</div><div class="step-title">Send invoice with PayNow QR</div><div class="step-desc">Create an invoice in seconds. Your logo, UEN, and PayNow QR are pre-filled. Send as PDF via WhatsApp or print it out.</div></div>
+<!-- ============ ALERTS DRAWER (RIGHT) ============ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h2>Alerts</h2>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Close alerts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div class="alert-item">
+      <div class="alert-icon warn">!</div>
+      <div class="alert-text"><strong>Invoice INV-0040</strong> is 14 days overdue.<div class="alert-time">2 hours ago</div></div>
+    </div>
+    <div class="alert-item">
+      <div class="alert-icon success">✓</div>
+      <div class="alert-text"><strong>Rajan K.</strong> marked "AC installation" as Paid.<div class="alert-time">Yesterday, 4:12pm</div></div>
+    </div>
+    <div class="alert-item">
+      <div class="alert-icon info">i</div>
+      <div class="alert-text">New job request from <strong>David Lim</strong> via Chillops booking.<div class="alert-time">Yesterday, 11:03am</div></div>
+    </div>
+    <div class="alert-item">
+      <div class="alert-icon warn">!</div>
+      <div class="alert-text"><strong>2 jobs</strong> in "New" have been unassigned for over 24 hours.<div class="alert-time">2 days ago</div></div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- GET STARTED GUIDE -->
-<section id="guide">
-  <div class="inner" style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start">
+<!-- ============ JOB DETAIL PANEL (RIGHT) ============ -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="panel" id="jobPanel">
+  <div class="panel-head">
     <div>
-      <div class="tag fiu">Get started</div>
-      <div class="h2 fiu">Up and running<br>in 10 minutes</div>
-      <div class="sub fiu">No technical knowledge needed. If you can use WhatsApp, you can use SnapJob.</div>
-      <div class="guide-steps">
-        <div class="gs fiu"><div class="gs-num">1</div><div><div class="gs-title">Create your account</div><div class="gs-desc">Sign up with your email. No credit card needed.</div><div class="gs-time">⏱ 1 min</div></div></div>
-        <div class="gs fiu"><div class="gs-num">2</div><div><div class="gs-title">Enter your business name</div><div class="gs-desc">Add your business name, contact number, and operating hours. This appears on all invoices.</div><div class="gs-time">⏱ 2 mins</div></div></div>
-        <div class="gs fiu"><div class="gs-num">3</div><div><div class="gs-title">Upload logo and PayNow QR</div><div class="gs-desc">Drag and drop your logo and PayNow QR screenshot. Pre-filled on every invoice automatically.</div><div class="gs-time">⏱ 2 mins</div></div></div>
-        <div class="gs fiu"><div class="gs-num">4</div><div><div class="gs-title">Add your technicians</div><div class="gs-desc">Enter their name and phone number. When you assign a job, their number appears instantly so you can call or text them directly.</div><div class="gs-time">⏱ 2 mins</div></div></div>
-        <div class="gs fiu"><div class="gs-num">5</div><div><div class="gs-title">Create your first job</div><div class="gs-desc">Add a job, assign your technician, send an invoice. Your admin workload drops immediately.</div><div class="gs-time">⏱ 3 mins</div></div></div>
+      <h2 id="panelTitle">Job title</h2>
+      <div class="sub" id="panelSub">Customer · Address</div>
+    </div>
+    <button class="drawer-close" onclick="closePanel()" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-section">
+      <h4>Job title</h4>
+      <input id="panelJobTitle" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="e.g. AC servicing — 2 units">
+    </div>
+    <div class="panel-section">
+      <h4>Customer name</h4>
+      <input id="panelCustomerName" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit; margin-bottom:8px;" placeholder="Customer name">
+      <div class="panel-row">
+        <input id="panelCustomerPhone" class="num" style="flex:1; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="+65 9123 4567">
+        <button class="call-btn" id="panelCallBtn" onclick="callCustomer()" style="margin-left:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Call
+        </button>
       </div>
     </div>
-    <div style="padding-top:40px">
-      <div style="background:var(--card);border:1px solid var(--brd);border-radius:16px;overflow:hidden">
-        <div style="background:var(--navy2);padding:12px 16px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:8px">
-          <div style="width:10px;height:10px;border-radius:50%;background:#f87171"></div>
-          <div style="width:10px;height:10px;border-radius:50%;background:var(--amber)"></div>
-          <div style="width:10px;height:10px;border-radius:50%;background:var(--emerald)"></div>
-          <div style="font-size:11px;color:var(--grey);margin-left:8px">SnapJob Dashboard</div>
-        </div>
-        <div style="padding:16px">
-          <div style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Job Board</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-            <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:8px">
-              <div style="font-size:9px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:6px">New · 2</div>
-              <div style="background:var(--navy2);border-radius:6px;padding:7px;margin-bottom:5px"><div style="font-size:10px;font-weight:600;margin-bottom:2px">David Tan</div><div style="font-size:9px;color:var(--grey)">Aircon leaking</div></div>
-            </div>
-            <div style="background:rgba(26,171,255,.1);border:1px solid rgba(26,171,255,.2);border-radius:8px;padding:8px">
-              <div style="font-size:9px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:6px">Assigned · 1</div>
-              <div style="background:var(--navy2);border-radius:6px;padding:7px;margin-bottom:5px"><div style="font-size:10px;font-weight:600;margin-bottom:2px">Mary Lim</div><div style="font-size:9px;color:var(--grey)">Gas top-up</div></div>
-            </div>
-            <div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:8px">
-              <div style="font-size:9px;font-weight:700;color:var(--emerald);text-transform:uppercase;margin-bottom:6px">Done · 1</div>
-              <div style="background:var(--navy2);border-radius:6px;padding:7px;margin-bottom:5px"><div style="font-size:10px;font-weight:600;margin-bottom:2px">James Ho</div><div style="font-size:9px;color:var(--grey)">Servicing ×2</div></div>
-            </div>
-          </div>
-          <div style="background:rgba(26,171,255,.08);border:1px solid rgba(26,171,255,.15);border-radius:8px;padding:10px">
-            <div style="font-size:9px;font-weight:700;color:var(--blue);margin-bottom:4px">✅ Invoice sent to James Ho</div>
-            <div style="font-size:10px;color:var(--grey)">$80 · PayNow QR included · 2:47 PM</div>
-          </div>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--grey)">Works on any browser — phone, tablet, or laptop</div>
+    <div class="panel-section">
+      <h4>Amount ($)</h4>
+      <input id="panelAmount" class="num" type="number" step="0.01" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="0.00">
+    </div>
+    <div class="panel-section">
+      <h4>Assign technician</h4>
+      <select class="status-select tech-select" id="panelTechnician">
+        <option value="">Unassigned</option>
+      </select>
+    </div>
+    <div class="panel-section">
+      <h4>Status</h4>
+      <select class="status-select" id="panelStatus">
+        <option value="new">New</option>
+        <option value="assigned">Assigned</option>
+        <option value="progress">In Progress</option>
+        <option value="done">Done</option>
+        <option value="paid">Paid</option>
+      </select>
+    </div>
+    <div class="panel-section">
+      <h4>Job notes</h4>
+      <textarea id="panelNotes" rows="3" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="Add notes about this job..."></textarea>
+    </div>
+    <div class="panel-section" id="panelInvoiceShortcut" style="display:none;">
+      <button class="mini-btn" style="width:100%; padding:10px;" onclick="createInvoiceFromJob()">🧾 Create invoice for this job</button>
     </div>
   </div>
-</section>
-
-<!-- FEATURES -->
-<section id="features" style="background:rgba(255,255,255,.02);border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)">
-  <div class="inner">
-    <div class="tag fiu">Features</div>
-    <div class="h2 fiu">Everything you need.<br>Nothing you don't.</div>
-    <div class="feat-grid">
-      <div class="feat fiu"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div><div class="feat-title">Kanban Job Board</div><div class="feat-desc">Drag jobs between New → Assigned → In Progress → Done → Paid. See your entire workday at a glance.</div></div>
-      <div class="feat fiu"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="feat-title">One-tap Technician Assignment</div><div class="feat-desc">Assign a job with one tap. The technician's phone number appears instantly so you can call or text them. All job details stored on the dashboard.</div></div>
-      <div class="feat fiu"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="feat-title">Professional Invoices with PayNow QR</div><div class="feat-desc">Create invoices in seconds with your logo, UEN, and PayNow QR pre-filled. Print or save as PDF. No more receipt books.</div></div>
-      <div class="feat fiu"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div><div class="feat-title">Customer CRM</div><div class="feat-desc">Every past customer stored automatically. See their job history, total spent, and create a follow-up job in one tap.</div></div>
-      <div class="feat fiu"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="feat-title">Monthly Sales Reports</div><div class="feat-desc">Filter invoices by month. See total invoiced, collected, and outstanding instantly. Know your numbers at all times.</div></div>
-      <div class="feat fiu"><div class="feat-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1AABFF" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="16" y="16" width="5" height="5"/></svg></div><div class="feat-title">PayNow QR on every invoice</div><div class="feat-desc">Upload your PayNow QR once. It appears on every invoice PDF you create — customers scan and pay immediately.</div></div>
-    </div>
+  <div class="panel-footer">
+    <button class="btn-ghost" onclick="closePanel()">Cancel</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="saveJob()">Save changes</button>
   </div>
-</section>
-
-<!-- ROI CALCULATOR -->
-<section id="savings">
-  <div class="inner" style="text-align:center">
-    <div class="tag fiu" style="justify-content:center;display:flex">Time & money saved</div>
-    <div class="h2 fiu">See how much SnapJob saves you</div>
-    <div class="sub fiu" style="margin:0 auto 0">Based on real costs for a small trade business in Singapore.</div>
-
-    <div class="calc-wrap fiu">
-      <div class="calc-row">
-        <div>
-          <div class="calc-label">Jobs per month</div>
-          <input type="range" id="r-jobs" min="10" max="200" value="50" oninput="calcROI()">
-          <div class="calc-val">Currently: <span class="calc-num" id="v-jobs">50</span> jobs/month</div>
-
-          <div class="calc-label" style="margin-top:16px">Technicians on your team</div>
-          <input type="range" id="r-techs" min="1" max="15" value="3" oninput="calcROI()">
-          <div class="calc-val">Team size: <span class="calc-num" id="v-techs">3</span> technicians</div>
-
-          <div class="calc-label" style="margin-top:16px">Minutes spent per job (admin)</div>
-          <input type="range" id="r-mins" min="5" max="45" value="20" oninput="calcROI()">
-          <div class="calc-val">Currently: <span class="calc-num" id="v-mins">20</span> mins/job</div>
-        </div>
-        <div>
-          <div class="calc-label">Your hourly rate (SGD)</div>
-          <input type="range" id="r-rate" min="15" max="100" value="30" oninput="calcROI()">
-          <div class="calc-val">Value of your time: <span class="calc-num">$</span><span class="calc-num" id="v-rate">30</span>/hr</div>
-
-          <div style="margin-top:24px;background:var(--card2);border-radius:12px;padding:16px;text-align:left">
-            <div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:10px">Current monthly costs (estimated)</div>
-            <div style="font-size:12px;color:var(--grey);line-height:2">
-              📒 Receipt books: <strong style="color:var(--white)">~$15–25/month</strong><br>
-              📝 Manual invoicing time: <strong style="color:var(--white)" id="c-inv">—</strong><br>
-              📞 Coordination calls/texts: <strong style="color:var(--white)" id="c-coord">—</strong><br>
-              📊 Tracking & follow-ups: <strong style="color:var(--white)" id="c-track">—</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="calc-result">
-        <div><div class="cr-val" id="r-hours" style="color:var(--blue)">—</div><div class="cr-label">Hours saved per month</div></div>
-        <div><div class="cr-val" id="r-money" style="color:var(--emerald)">—</div><div class="cr-label">Money saved per month</div></div>
-        <div><div class="cr-val" id="r-roi" style="color:var(--amber)">—</div><div class="cr-label">Return on investment</div></div>
-      </div>
-
-      <div class="cr-breakdown" id="calc-breakdown"></div>
-    </div>
-  </div>
-</section>
-
-<!-- TESTIMONIAL -->
-<section style="padding:40px 24px 80px">
-  <div class="inner" style="text-align:center">
-    <div class="testi fiu">
-      <div class="stars">★★★★★</div>
-      <div class="testi-text">"Before SnapJob I had three WhatsApp groups just to manage jobs. I was missing enquiries and forgetting to invoice. Now my technician gets the job on WhatsApp the moment I assign it, I send the invoice in one tap, and the customer pays via PayNow. It's like having an admin I don't have to pay."</div>
-      <div class="testi-author">
-        <div class="testi-av">❄️</div>
-        <div><div class="testi-name">Marcus T.</div><div class="testi-role">Owner, CoolBreeze Aircon · Singapore</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PRICING -->
-<section id="pricing" style="background:rgba(255,255,255,.02);border-top:1px solid var(--brd)">
-  <div class="inner" style="text-align:center">
-    <div class="tag fiu" style="justify-content:center;display:flex">Pricing</div>
-    <div class="h2 fiu">Straightforward pricing.<br>Cancel anytime.</div>
-    <div class="sub fiu" style="margin:0 auto 8px">vs hiring an admin at $1,500–$2,500/month in Singapore</div>
-    <div class="pricing-grid">
-
-      <div class="plan fiu">
-        <div class="plan-name">Starter</div>
-        <div class="plan-price">Free <span style="font-size:14px;font-weight:500;color:var(--grey)">forever</span></div>
-        <div class="plan-trial">No credit card · always free</div>
-        <div class="plan-desc">For solo operators just getting started.</div>
-        <ul class="plan-features">
-          <li>1 technician</li>
-          <li>5 jobs per month</li>
-          <li>Kanban job board</li>
-          <li>Manual invoice creation</li>
-          <li>PayNow QR on invoices</li>
-          <li>Customer CRM</li>
-        </ul>
-        <a class="plan-cta out" href="/dashboard.html">Start free</a>
-      </div>
-
-      <div class="plan hot fiu">
-        <div class="plan-badge">Most popular</div>
-        <div class="plan-name">Pro</div>
-        <div class="plan-price">$49 <span style="font-size:14px;font-weight:500;color:var(--grey)">SGD/month</span></div>
-        <div class="plan-trial">✨ First 3 months free</div>
-        <div class="plan-desc">For businesses with a team of technicians.</div>
-        <ul class="plan-features">
-          <li>Up to 10 technicians</li>
-          <li>100 jobs per month</li>
-          <li>One-tap technician assignment</li>
-          <li>Auto invoice + PayNow QR</li>
-          <li>Logo & UEN on invoices</li>
-          <li>Monthly sales reports</li>
-          <li>Customer CRM & history</li>
-          <li>Activity feed</li>
-        </ul>
-        <a class="plan-cta" href="/dashboard.html">Get started free</a>
-      </div>
-
-      <div class="plan fiu">
-        <div class="plan-name">Business</div>
-        <div class="plan-price">$99 <span style="font-size:14px;font-weight:500;color:var(--grey)">SGD/month</span></div>
-        <div class="plan-trial">✨ First 3 months free</div>
-        <div class="plan-desc">For established businesses with larger teams.</div>
-        <ul class="plan-features">
-          <li>Up to 20 technicians</li>
-          <li>Unlimited jobs</li>
-          <li>Everything in Pro</li>
-          <li>Priority WhatsApp support</li>
-          <li>Custom invoice footer</li>
-        </ul>
-        <a class="plan-cta out" href="/dashboard.html">Get started free</a>
-      </div>
-
-    </div>
-    <p style="font-size:13px;color:var(--grey);margin-top:20px">After your free trial, choose a plan that fits your business. <strong style="color:var(--white)">No automatic charges.</strong></p>
-  </div>
-</section>
-
-<!-- CTA -->
-<div class="cta-sec">
-  <h2>Ready to stop managing<br>jobs manually?</h2>
-  <p>First 50 businesses get 6 months free. No credit card.</p>
-  <a class="btn-p" href="/dashboard.html">Get started — it's free</a>
 </div>
 
-<footer>
-  <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;margin-bottom:7px">Snap<span style="color:var(--blue)">Job</span></div>
-  <p style="margin-bottom:5px">Job management for trade businesses in Southeast Asia.</p>
-  <p><a href="mailto:ngzhiyish@gmail.com">ngzhiyish@gmail.com</a></p>
-  <p style="margin-top:12px;font-size:11px">© 2026 SnapJob. Built in Singapore.</p>
-</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ============ ADD TECHNICIAN MODAL ============ -->
+<div class="panel-overlay" id="techModalOverlay" onclick="closeAddTechnician()"></div>
+<div class="panel" id="techModal" style="width:380px;">
+  <div class="panel-head">
+    <h2>Add technician</h2>
+    <button class="drawer-close" onclick="closeAddTechnician()" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-section">
+      <h4>Name</h4>
+      <input id="techName" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="Full name">
+    </div>
+    <div class="panel-section">
+      <h4>Phone</h4>
+      <input id="techPhone" class="num" style="width:100%; border:1px solid var(--border); border-radius:6px; padding:9px 11px; font-size:13.5px; font-family:inherit;" placeholder="+65 9123 4567">
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn-ghost" onclick="closeAddTechnician()">Cancel</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="saveTechnician()">Add technician</button>
+  </div>
+</div>
+
+<!-- ============ NEW INVOICE MODAL ============ -->
+<div class="panel-overlay" id="invoiceModalOverlay" onclick="closeNewInvoice()"></div>
+<div class="panel" id="invoiceModal" style="width:460px;">
+  <div class="panel-head">
+    <h2>New invoice</h2>
+    <button class="drawer-close" onclick="closeNewInvoice()" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-section">
+      <h4>Customer</h4>
+      <select id="invCustomer" class="status-select"><option value="">Select a customer…</option></select>
+    </div>
+    <div class="panel-section">
+      <h4>Link to job (optional)</h4>
+      <select id="invJob" class="status-select"><option value="">No linked job</option></select>
+    </div>
+    <div class="panel-section">
+      <h4>Line items</h4>
+      <div id="invLineItems"></div>
+      <button class="mini-btn" style="margin-top:8px;" onclick="addInvoiceLineItem()">+ Add line item</button>
+    </div>
+    <div class="panel-section">
+      <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; color:var(--ink-soft); cursor:pointer;">
+        <input type="checkbox" id="invGst" onchange="recalculateInvoiceTotal()"> Apply 9% GST
+      </label>
+    </div>
+    <div class="panel-section">
+      <div class="panel-row"><span class="label">Subtotal</span><span class="num" id="invSubtotalDisplay">$0.00</span></div>
+      <div class="panel-row"><span class="label">GST (9%)</span><span class="num" id="invGstDisplay">$0.00</span></div>
+      <div class="panel-row" style="font-weight:800; font-size:15px;"><span>Total</span><span class="num" id="invTotalDisplay">$0.00</span></div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn-ghost" onclick="closeNewInvoice()">Cancel</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="saveInvoice()">Create invoice</button>
+  </div>
+</div>
+
+<!-- ============ INVOICE PREVIEW PANEL ============ -->
+<div class="panel-overlay" id="invoicePreviewOverlay" onclick="closeInvoicePreview()"></div>
+<div class="panel" id="invoicePreviewPanel" style="width:560px;">
+  <div class="panel-head" style="border-bottom:none;">
+    <h2>Invoice preview</h2>
+    <button class="drawer-close" onclick="closeInvoicePreview()" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="panel-body" id="invoiceDocumentArea" style="background:#F1F5F9;">
+    <!-- filled dynamically by renderInvoiceDocument() -->
+  </div>
+  <div class="panel-footer">
+    <button class="btn-ghost" onclick="closeInvoicePreview()">Close</button>
+    <button class="btn-primary" style="flex:1; justify-content:center;" onclick="printInvoiceDocument()">Print / Save as PDF</button>
+  </div>
+</div>
+
+<style>
+  /* Print only the invoice document, never the rest of the dashboard */
+  @media print {
+    body * { visibility: hidden; }
+    #invoiceDocumentArea, #invoiceDocumentArea * { visibility: visible; }
+    #invoiceDocumentArea { position: absolute; top: 0; left: 0; width: 100%; background: #fff !important; }
+  }
+  .inv-doc {
+    background: #fff; border-radius: 8px; padding: 28px; font-size: 13px; color: var(--ink);
+  }
+  .inv-doc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid var(--ink); }
+  .inv-doc-logo { max-height: 56px; max-width: 160px; margin-bottom: 8px; }
+  .inv-doc-bizname { font-size: 16px; font-weight: 800; }
+  .inv-doc-meta { font-size: 11.5px; color: var(--slate); line-height: 1.6; margin-top: 4px; }
+  .inv-doc-title { text-align: right; }
+  .inv-doc-title h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .inv-doc-num { font-size: 12px; color: var(--slate); margin-top: 4px; }
+  .inv-doc-parties { display: flex; justify-content: space-between; margin-bottom: 24px; }
+  .inv-doc-parties .label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate); font-weight: 700; margin-bottom: 6px; }
+  .inv-doc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  .inv-doc-table th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate); padding: 8px 0; border-bottom: 1.5px solid var(--ink); }
+  .inv-doc-table td { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .inv-doc-totals { margin-left: auto; width: 220px; }
+  .inv-doc-totals .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+  .inv-doc-totals .row.total { border-top: 2px solid var(--ink); margin-top: 6px; padding-top: 10px; font-weight: 800; font-size: 15px; }
+  .inv-doc-foot { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .inv-doc-qr { text-align: center; }
+  .inv-doc-qr img { max-width: 110px; max-height: 110px; border-radius: 6px; border: 1px solid var(--border); }
+  .inv-doc-qr div { font-size: 10.5px; color: var(--slate); margin-top: 6px; }
+  .inv-doc-footer-text { font-size: 11px; color: var(--slate); max-width: 280px; line-height: 1.5; }
+</style>
 
 <script>
-function calcROI(){
-  const jobs=parseInt(document.getElementById('r-jobs').value);
-  const techs=parseInt(document.getElementById('r-techs').value);
-  const mins=parseInt(document.getElementById('r-mins').value);
-  const rate=parseInt(document.getElementById('r-rate').value);
 
-  document.getElementById('v-jobs').textContent=jobs;
-  document.getElementById('v-techs').textContent=techs;
-  document.getElementById('v-mins').textContent=mins;
-  document.getElementById('v-rate').textContent=rate;
+  // ============================================================
+  // STATE
+  // ============================================================
+  let currentBusiness = null;   // the business row for the logged-in user
+  let technicians = [];         // cached list for dropdowns
+  let jobsCache = [];           // cached jobs for the board
+  let authMode = 'login';       // 'login' | 'signup'
 
-  // Time calculations
-  const totalMins = jobs * mins;
-  // SnapJob reduces admin time by ~75%
-  const savedMins = totalMins * 0.75;
-  const savedHours = (savedMins/60).toFixed(1);
+  // ============================================================
+  // AUTH
+  // ============================================================
+  function toggleAuthMode() {
+    authMode = authMode === 'login' ? 'signup' : 'login';
+    document.getElementById('loginTitle').textContent = authMode === 'login' ? 'Log in to your dashboard' : 'Create your account';
+    document.getElementById('loginSubmitBtn').textContent = authMode === 'login' ? 'Log in' : 'Sign up';
+    document.getElementById('loginToggle').innerHTML = authMode === 'login'
+      ? `Don't have an account? <a href="#" onclick="toggleAuthMode(); return false;">Sign up</a>`
+      : `Already have an account? <a href="#" onclick="toggleAuthMode(); return false;">Log in</a>`;
+    hideLoginError();
+  }
 
-  // Cost breakdown
-  const invTime = Math.round(jobs * 5 * rate / 60); // 5 mins per invoice
-  const coordTime = Math.round(jobs * 8 * rate / 60); // 8 mins coordination
-  const trackTime = Math.round(jobs * 7 * rate / 60); // 7 mins tracking
+  function showLoginError(msg) {
+    const el = document.getElementById('loginError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function hideLoginError() {
+    document.getElementById('loginError').style.display = 'none';
+  }
 
-  document.getElementById('c-inv').textContent = '$'+invTime+'/month';
-  document.getElementById('c-coord').textContent = '$'+coordTime+'/month';
-  document.getElementById('c-track').textContent = '$'+trackTime+'/month';
+  async function submitEmailAuth() {
+    hideLoginError();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showLoginError('Enter your email and password.'); return; }
 
-  const receiptBooks = 20;
-  const totalSaved = Math.round(savedMins/60 * rate) + receiptBooks;
-  const snapjobCost = jobs <= 5 ? 0 : jobs <= 100 ? 49 : 99;
-  const netSaved = totalSaved - snapjobCost;
-  const roi = snapjobCost > 0 ? Math.round((netSaved/snapjobCost)*100) : 999;
+    if (authMode === 'login') {
+      const { error } = await db.auth.signInWithPassword({ email, password });
+      if (error) showLoginError(error.message);
+    } else {
+      const { error } = await db.auth.signUp({ email, password });
+      if (error) showLoginError(error.message);
+      else showLoginError("Account created — check your email to confirm, then log in.");
+    }
+  }
 
-  document.getElementById('r-hours').textContent = savedHours+'h';
-  document.getElementById('r-money').textContent = '$'+totalSaved;
-  document.getElementById('r-roi').textContent = roi > 999 ? '∞' : roi+'%';
+  async function logout() {
+    await db.auth.signOut();
+  }
 
-  document.getElementById('calc-breakdown').innerHTML =
-    '<strong>How we calculate this:</strong> '+jobs+' jobs × '+mins+' mins admin each = '+Math.round(totalMins/60)+'h/month at $'+rate+'/hr. '+
-    'SnapJob reduces admin by ~75% through faster job creation, one-tap assignment, and instant invoice generation. '+
-    'Receipt books in Singapore cost ~$15–25/month. '+
-    '<strong>Total saved: $'+totalSaved+'/month vs SnapJob at $'+(snapjobCost||'0 — free plan')+'/month.</strong>';
-}
-calcROI();
+  // Called on page load and whenever auth state changes
+  async function handleAuthState(session) {
+    if (!session) {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('appRoot').classList.add('hidden');
+      return;
+    }
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appRoot').classList.remove('hidden');
 
-const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')})},{threshold:0.1});
-document.querySelectorAll('.fiu').forEach(el=>obs.observe(el));
+    const email = session.user.email || '';
+    document.getElementById('userAvatar').textContent = email.slice(0, 2).toUpperCase();
+
+    await loadCurrentBusiness();
+    await loadAllData();
+  }
+
+  db.auth.onAuthStateChange((_event, session) => handleAuthState(session));
+  db.auth.getSession().then(({ data }) => handleAuthState(data.session));
+
+  // ============================================================
+  // LOAD CURRENT BUSINESS  (the "currentBusiness" gating object)
+  // ============================================================
+  async function loadCurrentBusiness() {
+    const { data, error } = await db.from('businesses').select('*').single();
+    if (error) {
+      console.error('Failed to load business:', error);
+      alert('Could not load your business profile. This usually means your account is missing a business record. Error: ' + error.message);
+      return;
+    }
+    currentBusiness = data;
+    populateSettingsForm();
+    updateTrialBanner();
+  }
+
+  function populateSettingsForm() {
+    if (!currentBusiness) return;
+    document.getElementById('bizName').value = currentBusiness.name || '';
+    document.getElementById('bizUen').value = currentBusiness.uen || '';
+    document.getElementById('bizPhone').value = currentBusiness.phone || '';
+    document.getElementById('bizAddress').value = currentBusiness.address || '';
+    document.getElementById('postalCode').value = currentBusiness.postal_code || '';
+    document.getElementById('bizFooter').value = currentBusiness.invoice_footer || '';
+    if (currentBusiness.logo_url) showUploadPreview(document.getElementById('logoUploadBox'), currentBusiness.logo_url, 'logo');
+    if (currentBusiness.paynow_qr_url) showUploadPreview(document.getElementById('paynowUploadBox'), currentBusiness.paynow_qr_url, 'paynow');
+  }
+
+  function updateTrialBanner() {
+    if (!currentBusiness) return;
+    const started = new Date(currentBusiness.trial_started_at);
+    const daysUsed = Math.floor((Date.now() - started.getTime()) / 86400000);
+    const daysLeft = Math.max(0, 90 - daysUsed);
+    document.querySelector('#trialBanner .banner-left span strong').textContent = `${daysLeft} days left`;
+    document.querySelector('.trial-card strong').textContent = `Free trial — Day ${Math.min(daysUsed, 90)} of 90`;
+    document.querySelector('.trial-bar-fill').style.width = `${Math.min(100, (daysUsed / 90) * 100)}%`;
+  }
+
+  // ============================================================
+  // LOAD ALL DATA
+  // ============================================================
+  async function loadAllData() {
+    await Promise.all([loadTechnicians(), loadJobs(), loadCustomers(), loadInvoices(), loadArchive()]);
+    initDragAndDrop();
+  }
+
+  // ---------- TECHNICIANS ----------
+  async function loadTechnicians() {
+    const { data, error } = await db.from('technicians').select('*').order('name');
+    if (error) { console.error(error); return; }
+    technicians = data || [];
+    renderTechnicians();
+    populateTechnicianDropdown();
+  }
+
+  function initials(name) {
+    return (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  function renderTechnicians() {
+    const body = document.getElementById('techniciansBody');
+    if (!technicians.length) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">No technicians yet. Click "Add technician" to get started.</td></tr>`;
+      return;
+    }
+    body.innerHTML = technicians.map(t => {
+      const activeJobs = jobsCache.filter(j => j.technician_id === t.id && j.status !== 'paid').length;
+      return `
+        <tr class="row-clickable">
+          <td><div class="name-cell"><span class="row-avatar">${initials(t.name)}</span>${escapeHtml(t.name)}</div></td>
+          <td><a class="phone-link num" href="tel:${escapeHtml(t.phone)}">${escapeHtml(t.phone)}</a></td>
+          <td class="num">${activeJobs}</td>
+          <td><span class="pill pill-active">${t.active ? 'Active' : 'Inactive'}</span></td>
+          <td><div class="row-actions"><button class="mini-btn" onclick="toggleTechnicianActive('${t.id}', ${t.active})">${t.active ? 'Deactivate' : 'Activate'}</button></div></td>
+        </tr>`;
+    }).join('');
+  }
+
+  function populateTechnicianDropdown() {
+    const select = document.getElementById('panelTechnician');
+    select.innerHTML = '<option value="">Unassigned</option>' +
+      technicians.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  }
+
+  function openAddTechnician() {
+    document.getElementById('techName').value = '';
+    document.getElementById('techPhone').value = '';
+    document.getElementById('techModal').classList.add('open');
+    document.getElementById('techModalOverlay').classList.add('open');
+  }
+  function closeAddTechnician() {
+    document.getElementById('techModal').classList.remove('open');
+    document.getElementById('techModalOverlay').classList.remove('open');
+  }
+  async function saveTechnician() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const name = document.getElementById('techName').value.trim();
+    const phone = document.getElementById('techPhone').value.trim();
+    if (!name || !phone) { alert('Name and phone are required.'); return; }
+    const { error } = await db.from('technicians').insert({
+      business_id: currentBusiness.id, name, phone
+    });
+    if (error) { alert('Could not save technician: ' + error.message); return; }
+    closeAddTechnician();
+    await loadTechnicians();
+  }
+  async function toggleTechnicianActive(id, currentlyActive) {
+    const { error } = await db.from('technicians').update({ active: !currentlyActive }).eq('id', id);
+    if (error) { alert('Update failed: ' + error.message); return; }
+    await loadTechnicians();
+  }
+
+  // ---------- JOBS / KANBAN ----------
+  async function loadJobs() {
+    const { data, error } = await db
+      .from('jobs')
+      .select('*, customers(name, phone, address)')
+      .neq('status', 'paid')
+      .order('board_position');
+    if (error) { console.error(error); return; }
+    jobsCache = data || [];
+    renderBoard();
+  }
+
+  function renderBoard() {
+    const statuses = ['new', 'assigned', 'progress', 'done'];
+    statuses.forEach(status => {
+      const col = document.getElementById(`col-${status}`);
+      const jobsInCol = jobsCache.filter(j => j.status === status);
+      document.getElementById(`count-${status}`).textContent = jobsInCol.length;
+      col.innerHTML = jobsInCol.map(j => renderJobCard(j)).join('');
+    });
+  }
+
+  function renderJobCard(job) {
+    const customer = job.customers || {};
+    const tech = technicians.find(t => t.id === job.technician_id);
+    const techHtml = tech
+      ? `<span class="card-tech"><span class="tech-dot">${initials(tech.name)}</span>${escapeHtml(tech.name.split(' ')[0])}</span>`
+      : `<span class="card-tech card-unassigned">Unassigned</span>`;
+    const callBtn = customer.phone
+      ? `<button class="card-call" onclick="event.stopPropagation(); window.location.href='tel:${escapeHtml(customer.phone)}'" aria-label="Call customer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </button>`
+      : '';
+    return `
+      <div class="card" data-job-id="${job.id}" onclick="openJob('${job.id}')">
+        <div class="card-title">${escapeHtml(job.title)}</div>
+        <div class="card-sub">${escapeHtml(customer.name || 'No customer')}${customer.address ? ' · ' + escapeHtml(customer.address) : ''}</div>
+        <div class="card-foot">
+          ${techHtml}
+          ${callBtn || (job.amount ? `<span class="card-amount num">$${Number(job.amount).toFixed(0)}</span>` : '')}
+        </div>
+      </div>`;
+  }
+
+  // Drag-and-drop: SortableJS on each column, shared group "kanban"
+  let sortableInstances = [];
+  function initDragAndDrop() {
+    sortableInstances.forEach(s => s.destroy());
+    sortableInstances = [];
+    ['new', 'assigned', 'progress', 'done'].forEach(status => {
+      const col = document.getElementById(`col-${status}`);
+      const instance = Sortable.create(col, {
+        group: 'kanban',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
+        onEnd: async (evt) => {
+          const jobId = evt.item.getAttribute('data-job-id');
+          const newStatus = evt.to.getAttribute('data-status');
+          const oldStatus = evt.from.getAttribute('data-status');
+          if (newStatus === oldStatus && evt.oldIndex === evt.newIndex) return;
+          await updateJobStatus(jobId, newStatus, evt.newIndex);
+        }
+      });
+      sortableInstances.push(instance);
+    });
+  }
+
+  async function updateJobStatus(jobId, newStatus, newIndex) {
+    const { error } = await db
+      .from('jobs')
+      .update({ status: newStatus, board_position: newIndex })
+      .eq('id', jobId);
+    if (error) {
+      alert('Could not update job status: ' + error.message);
+      await loadJobs(); // revert visually by reloading real data
+      return;
+    }
+    // update local cache so counts/tech lookups stay correct without a full reload
+    const job = jobsCache.find(j => j.id === jobId);
+    if (job) job.status = newStatus;
+    document.querySelectorAll('.col-count').forEach(el => {});
+    ['new','assigned','progress','done'].forEach(s => {
+      document.getElementById(`count-${s}`).textContent = jobsCache.filter(j => j.status === s).length;
+    });
+  }
+
+  // ---------- JOB DETAIL / NEW JOB PANEL ----------
+  let panelJobId = null; // null means "creating a new job"
+
+  function openNewJob() {
+    panelJobId = null;
+    document.getElementById('panelTitle').textContent = 'New job';
+    document.getElementById('panelSub').textContent = 'Fill in the details below';
+    document.getElementById('panelJobTitle').value = '';
+    document.getElementById('panelCustomerName').value = '';
+    document.getElementById('panelCustomerPhone').value = '';
+    document.getElementById('panelAmount').value = '';
+    document.getElementById('panelTechnician').value = '';
+    document.getElementById('panelStatus').value = 'new';
+    document.getElementById('panelNotes').value = '';
+    document.getElementById('panelInvoiceShortcut').style.display = 'none';
+    document.getElementById('jobPanel').classList.add('open');
+    document.getElementById('panelOverlay').classList.add('open');
+  }
+
+  function openJob(jobId) {
+    const job = jobsCache.find(j => j.id === jobId);
+    if (!job) return;
+    panelJobId = jobId;
+    const customer = job.customers || {};
+    document.getElementById('panelTitle').textContent = job.title;
+    document.getElementById('panelSub').textContent = `${customer.name || 'No customer'}${customer.address ? ' · ' + customer.address : ''}`;
+    document.getElementById('panelJobTitle').value = job.title || '';
+    document.getElementById('panelCustomerName').value = customer.name || '';
+    document.getElementById('panelCustomerPhone').value = customer.phone || '';
+    document.getElementById('panelAmount').value = job.amount || '';
+    document.getElementById('panelTechnician').value = job.technician_id || '';
+    document.getElementById('panelStatus').value = job.status;
+    document.getElementById('panelNotes').value = job.notes || '';
+    document.getElementById('panelInvoiceShortcut').style.display = 'block';
+    document.getElementById('jobPanel').classList.add('open');
+    document.getElementById('panelOverlay').classList.add('open');
+  }
+
+  async function createInvoiceFromJob() {
+    if (!panelJobId) return;
+    const job = jobsCache.find(j => j.id === panelJobId);
+    if (!job) return;
+    if (!job.customer_id) { alert('This job has no customer attached yet. Add a customer name and phone, save the job, then try again.'); return; }
+
+    closePanel();
+    openNewInvoice();
+    // pre-select this job's customer and link the job, then add one line item from the job title/amount
+    document.getElementById('invJob').value = job.id;
+    document.getElementById('invCustomer').value = job.customer_id;
+    document.getElementById('invLineItems').innerHTML = '';
+    invoiceLineItemCount = 0;
+    addInvoiceLineItem();
+    const firstRow = document.querySelector('#invLineItems > div');
+    if (firstRow) {
+      firstRow.querySelector('.inv-line-desc').value = job.title || '';
+      firstRow.querySelector('.inv-line-amount').value = job.amount || '';
+    }
+    recalculateInvoiceTotal();
+  }
+
+  function callCustomer() {
+    const phone = document.getElementById('panelCustomerPhone').value.trim();
+    if (phone) window.location.href = `tel:${phone}`;
+  }
+
+  async function saveJob() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const title = document.getElementById('panelJobTitle').value.trim();
+    const custName = document.getElementById('panelCustomerName').value.trim();
+    const custPhone = document.getElementById('panelCustomerPhone').value.trim();
+    const amount = document.getElementById('panelAmount').value;
+    const technicianId = document.getElementById('panelTechnician').value || null;
+    const status = document.getElementById('panelStatus').value;
+    const notes = document.getElementById('panelNotes').value;
+
+    if (!title) { alert('Job title is required.'); return; }
+
+    // find or create the customer by phone number within this business
+    let customerId = null;
+    if (custName && custPhone) {
+      const { data: existing } = await db
+        .from('customers').select('id').eq('phone', custPhone).maybeSingle();
+      if (existing) {
+        customerId = existing.id;
+        await db.from('customers').update({ name: custName }).eq('id', existing.id);
+      } else {
+        const { data: created, error: custErr } = await db
+          .from('customers').insert({ business_id: currentBusiness.id, name: custName, phone: custPhone }).select().single();
+        if (custErr) { alert('Could not save customer: ' + custErr.message); return; }
+        customerId = created.id;
+      }
+    }
+
+    const payload = {
+      business_id: currentBusiness.id,
+      title, status, notes,
+      amount: amount ? parseFloat(amount) : null,
+      technician_id: technicianId,
+      customer_id: customerId,
+    };
+    if (status === 'paid') payload.paid_at = new Date().toISOString();
+
+    let error;
+    if (panelJobId) {
+      ({ error } = await db.from('jobs').update(payload).eq('id', panelJobId));
+    } else {
+      ({ error } = await db.from('jobs').insert(payload));
+    }
+    if (error) { alert('Could not save job: ' + error.message); return; }
+
+    closePanel();
+    await loadJobs();
+    await loadCustomers();
+    if (status === 'paid') await loadArchive();
+  }
+
+  // ---------- CUSTOMERS ----------
+  async function loadCustomers() {
+    const { data: customers, error } = await db.from('customers').select('*').order('name');
+    if (error) { console.error(error); return; }
+    const { data: paidJobs } = await db.from('jobs').select('customer_id, amount').eq('status', 'paid');
+
+    const body = document.getElementById('customersBody');
+    if (!customers || !customers.length) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--slate); padding:24px;">No customers yet. They'll appear here once you create a job.</td></tr>`;
+      return;
+    }
+    body.innerHTML = customers.map(c => {
+      const theirPaidJobs = (paidJobs || []).filter(j => j.customer_id === c.id);
+      const lifetimeValue = theirPaidJobs.reduce((sum, j) => sum + (Number(j.amount) || 0), 0);
+      return `
+        <tr class="row-clickable">
+          <td><div class="name-cell"><span class="row-avatar">${initials(c.name)}</span>${escapeHtml(c.name)}</div></td>
+          <td><a class="phone-link num" href="tel:${escapeHtml(c.phone)}">${escapeHtml(c.phone)}</a></td>
+          <td>${escapeHtml(c.address || '—')}</td>
+          <td class="num">${theirPaidJobs.length}</td>
+          <td class="num">$${lifetimeValue.toFixed(2)}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ---------- INVOICES ----------
+  let invoicesCache = [];
+
+  async function loadInvoices() {
+    const { data, error } = await db
+      .from('invoices').select('*, customers(name, phone, address)').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    invoicesCache = data || [];
+    const body = document.getElementById('invoicesBody');
+    if (!invoicesCache.length) {
+      body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">No invoices yet.</td></tr>`;
+      return;
+    }
+    body.innerHTML = invoicesCache.map(inv => {
+      const date = new Date(inv.created_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `
+        <tr class="row-clickable">
+          <td class="num">${escapeHtml(inv.invoice_number)}</td>
+          <td>${escapeHtml((inv.customers && inv.customers.name) || '—')}</td>
+          <td>${date}</td>
+          <td class="num">$${Number(inv.total).toFixed(2)}</td>
+          <td>
+            <select class="select-input" style="padding:5px 8px; font-size:12px;" onchange="updateInvoiceStatus('${inv.id}', this.value)">
+              <option value="unpaid" ${inv.status === 'unpaid' ? 'selected' : ''}>Unpaid</option>
+              <option value="paid" ${inv.status === 'paid' ? 'selected' : ''}>Paid</option>
+              <option value="overdue" ${inv.status === 'overdue' ? 'selected' : ''}>Overdue</option>
+            </select>
+          </td>
+          <td><div class="row-actions"><button class="mini-btn" onclick="openInvoicePreview('${inv.id}')">Preview</button></div></td>
+        </tr>`;
+    }).join('');
+  }
+
+  async function updateInvoiceStatus(invoiceId, newStatus) {
+    const payload = { status: newStatus };
+    if (newStatus === 'paid') payload.paid_at = new Date().toISOString();
+    const { error } = await db.from('invoices').update(payload).eq('id', invoiceId);
+    if (error) { alert('Could not update invoice status: ' + error.message); return; }
+    await loadInvoices();
+  }
+
+  // ---------- INVOICE PREVIEW DOCUMENT ----------
+  function openInvoicePreview(invoiceId) {
+    const inv = invoicesCache.find(i => i.id === invoiceId);
+    if (!inv) return;
+    document.getElementById('invoiceDocumentArea').innerHTML = renderInvoiceDocument(inv);
+    document.getElementById('invoicePreviewPanel').classList.add('open');
+    document.getElementById('invoicePreviewOverlay').classList.add('open');
+  }
+
+  function closeInvoicePreview() {
+    document.getElementById('invoicePreviewPanel').classList.remove('open');
+    document.getElementById('invoicePreviewOverlay').classList.remove('open');
+  }
+
+  function printInvoiceDocument() {
+    window.print();
+  }
+
+  function renderInvoiceDocument(inv) {
+    const biz = currentBusiness || {};
+    const customer = inv.customers || {};
+    const date = new Date(inv.created_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' });
+    const lineItems = Array.isArray(inv.line_items) ? inv.line_items : [];
+
+    const logoHtml = biz.logo_url
+      ? `<img class="inv-doc-logo" src="${biz.logo_url}" alt="logo">`
+      : `<div class="inv-doc-bizname">${escapeHtml(biz.name || 'Your Business')}</div>`;
+
+    const bizMetaLines = [
+      biz.logo_url ? escapeHtml(biz.name || '') : '',
+      biz.uen ? `UEN: ${escapeHtml(biz.uen)}` : '',
+      biz.address ? escapeHtml(biz.address) : '',
+      biz.postal_code ? `Singapore ${escapeHtml(biz.postal_code)}` : '',
+      biz.phone ? escapeHtml(biz.phone) : ''
+    ].filter(Boolean).join('<br>');
+
+    const rowsHtml = lineItems.map(li => `
+      <tr>
+        <td>${escapeHtml(li.description || '—')}</td>
+        <td class="num" style="text-align:right;">$${Number(li.amount || 0).toFixed(2)}</td>
+      </tr>`).join('') || `<tr><td colspan="2" style="color:var(--slate);">No line items recorded.</td></tr>`;
+
+    const qrHtml = biz.paynow_qr_url
+      ? `<div class="inv-doc-qr"><img src="${biz.paynow_qr_url}" alt="PayNow QR"><div>Scan to pay via PayNow</div></div>`
+      : `<div class="inv-doc-qr"><div style="font-size:11px; color:var(--slate); max-width:140px;">No PayNow QR on file — add one in Settings.</div></div>`;
+
+    return `
+      <div class="inv-doc">
+        <div class="inv-doc-head">
+          <div>
+            ${logoHtml}
+            <div class="inv-doc-meta">${bizMetaLines}</div>
+          </div>
+          <div class="inv-doc-title">
+            <h3>INVOICE</h3>
+            <div class="inv-doc-num">${escapeHtml(inv.invoice_number)}<br>${date}</div>
+          </div>
+        </div>
+        <div class="inv-doc-parties">
+          <div>
+            <div class="label">Billed to</div>
+            <div style="font-weight:700;">${escapeHtml(customer.name || '—')}</div>
+            <div style="color:var(--slate); font-size:12px; margin-top:2px;">${escapeHtml(customer.phone || '')}</div>
+            <div style="color:var(--slate); font-size:12px;">${escapeHtml(customer.address || '')}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="label">Status</div>
+            <span class="pill ${inv.status === 'paid' ? 'pill-paid' : inv.status === 'overdue' ? 'pill-overdue' : 'pill-unpaid'}">${inv.status[0].toUpperCase() + inv.status.slice(1)}</span>
+          </div>
+        </div>
+        <table class="inv-doc-table">
+          <thead><tr><th>Description</th><th style="text-align:right;">Amount</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <div class="inv-doc-totals">
+          <div class="row"><span>Subtotal</span><span class="num">$${Number(inv.subtotal || 0).toFixed(2)}</span></div>
+          ${inv.gst_applied ? `<div class="row"><span>GST (9%)</span><span class="num">$${(Number(inv.total || 0) - Number(inv.subtotal || 0)).toFixed(2)}</span></div>` : ''}
+          <div class="row total"><span>Total</span><span class="num">$${Number(inv.total || 0).toFixed(2)}</span></div>
+        </div>
+        <div class="inv-doc-foot">
+          <div class="inv-doc-footer-text">${escapeHtml(biz.invoice_footer || '')}</div>
+          ${qrHtml}
+        </div>
+      </div>`;
+  }
+
+  // ---------- NEW INVOICE ----------
+  let invoiceLineItemCount = 0;
+
+  function openNewInvoice() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const custSelect = document.getElementById('invCustomer');
+    custSelect.innerHTML = '<option value="">Select a customer…</option>' +
+      [...new Map(jobsCache.filter(j => j.customers).map(j => [j.customer_id, j.customers])).entries()]
+        .map(([id, c]) => `<option value="${id}">${escapeHtml(c.name)}</option>`).join('');
+
+    const jobSelect = document.getElementById('invJob');
+    jobSelect.innerHTML = '<option value="">No linked job</option>' +
+      jobsCache.map(j => `<option value="${j.id}" data-customer="${j.customer_id || ''}" data-amount="${j.amount || ''}">${escapeHtml(j.title)}</option>`).join('');
+
+    document.getElementById('invGst').checked = false;
+    document.getElementById('invLineItems').innerHTML = '';
+    invoiceLineItemCount = 0;
+    addInvoiceLineItem();
+    recalculateInvoiceTotal();
+
+    document.getElementById('invoiceModal').classList.add('open');
+    document.getElementById('invoiceModalOverlay').classList.add('open');
+  }
+
+  function closeNewInvoice() {
+    document.getElementById('invoiceModal').classList.remove('open');
+    document.getElementById('invoiceModalOverlay').classList.remove('open');
+  }
+
+  function addInvoiceLineItem() {
+    invoiceLineItemCount++;
+    const id = `line-${invoiceLineItemCount}`;
+    const row = document.createElement('div');
+    row.id = id;
+    row.style = 'display:flex; gap:8px; margin-bottom:8px; align-items:center;';
+    row.innerHTML = `
+      <input class="inv-line-desc" placeholder="Description" style="flex:2; border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-size:13px; font-family:inherit;">
+      <input class="inv-line-amount num" type="number" step="0.01" placeholder="0.00" oninput="recalculateInvoiceTotal()" style="flex:1; border:1px solid var(--border); border-radius:6px; padding:8px 10px; font-size:13px; font-family:inherit;">
+      <button class="mini-btn" onclick="document.getElementById('${id}').remove(); recalculateInvoiceTotal();">✕</button>
+    `;
+    document.getElementById('invLineItems').appendChild(row);
+  }
+
+  function recalculateInvoiceTotal() {
+    const amounts = [...document.querySelectorAll('.inv-line-amount')].map(el => parseFloat(el.value) || 0);
+    const subtotal = amounts.reduce((sum, a) => sum + a, 0);
+    const gstApplied = document.getElementById('invGst').checked;
+    const gst = gstApplied ? subtotal * 0.09 : 0;
+    const total = subtotal + gst;
+    document.getElementById('invSubtotalDisplay').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('invGstDisplay').textContent = `$${gst.toFixed(2)}`;
+    document.getElementById('invTotalDisplay').textContent = `$${total.toFixed(2)}`;
+  }
+
+  async function saveInvoice() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const customerId = document.getElementById('invCustomer').value || null;
+    const jobId = document.getElementById('invJob').value || null;
+    const gstApplied = document.getElementById('invGst').checked;
+
+    const lineItems = [...document.querySelectorAll('#invLineItems > div')].map(row => ({
+      description: row.querySelector('.inv-line-desc').value.trim(),
+      amount: parseFloat(row.querySelector('.inv-line-amount').value) || 0
+    })).filter(li => li.description || li.amount);
+
+    if (!customerId) { alert('Please select a customer.'); return; }
+    if (!lineItems.length) { alert('Add at least one line item.'); return; }
+
+    const subtotal = lineItems.reduce((sum, li) => sum + li.amount, 0);
+    const gst = gstApplied ? subtotal * 0.09 : 0;
+    const total = subtotal + gst;
+
+    // simple sequential invoice number based on count of existing invoices for this business
+    const { count } = await db.from('invoices').select('*', { count: 'exact', head: true });
+    const invoiceNumber = `INV-${String((count || 0) + 1).padStart(4, '0')}`;
+
+    const { error } = await db.from('invoices').insert({
+      business_id: currentBusiness.id,
+      job_id: jobId,
+      customer_id: customerId,
+      invoice_number: invoiceNumber,
+      line_items: lineItems,
+      gst_applied: gstApplied,
+      subtotal,
+      total,
+      status: 'unpaid'
+    });
+
+    if (error) { alert('Could not create invoice: ' + error.message); return; }
+    closeNewInvoice();
+    await loadInvoices();
+  }
+
+
+  async function loadArchive() {
+    const { data, error } = await db
+      .from('jobs')
+      .select('*, customers(name), technicians(name)')
+      .eq('status', 'paid')
+      .order('paid_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    const body = document.getElementById('archiveBody');
+    if (!data || !data.length) {
+      body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:24px;">No paid jobs yet. They'll show up here once marked Paid.</td></tr>`;
+      return;
+    }
+    body.innerHTML = data.map(j => {
+      const date = j.paid_at ? new Date(j.paid_at).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+      return `
+        <tr class="row-clickable">
+          <td>${escapeHtml(j.title)}</td>
+          <td>${escapeHtml((j.customers && j.customers.name) || '—')}</td>
+          <td>${escapeHtml((j.technicians && j.technicians.name) || '—')}</td>
+          <td>${date}</td>
+          <td class="num">$${Number(j.amount || 0).toFixed(2)}</td>
+          <td class="num">—</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ---------- FILE UPLOADS (logo / PayNow QR) ----------
+  async function handleFileUpload(inputEl, kind) {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const file = inputEl.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) { alert('Please choose an image under 2MB.'); inputEl.value = ''; return; }
+
+    const boxId = kind === 'logo' ? 'logoUploadBox' : 'paynowUploadBox';
+    const box = document.getElementById(boxId);
+    const originalText = box.textContent;
+    box.textContent = 'Uploading…';
+
+    const ext = file.name.split('.').pop();
+    const path = `${currentBusiness.id}/${kind}.${ext}`;
+
+    const { error: uploadError } = await db.storage.from('business-assets').upload(path, file, { upsert: true });
+    if (uploadError) {
+      alert('Upload failed: ' + uploadError.message);
+      box.textContent = originalText;
+      return;
+    }
+
+    const { data: urlData } = db.storage.from('business-assets').getPublicUrl(path);
+    const publicUrl = urlData.publicUrl;
+
+    const column = kind === 'logo' ? 'logo_url' : 'paynow_qr_url';
+    const { error: updateError } = await db.from('businesses').update({ [column]: publicUrl }).eq('id', currentBusiness.id);
+    if (updateError) {
+      alert('Uploaded, but could not save to your business profile: ' + updateError.message);
+      box.textContent = originalText;
+      return;
+    }
+
+    currentBusiness[column] = publicUrl;
+    showUploadPreview(box, publicUrl, kind);
+  }
+
+  function showUploadPreview(box, url, kind) {
+    box.innerHTML = `<img src="${url}" alt="${kind}" style="max-height:60px; max-width:100%; border-radius:4px;"><div style="font-size:11px; margin-top:6px; color:var(--slate);">Click to replace</div>`;
+  }
+
+  // ---------- SETTINGS ----------
+  async function saveBusinessDetails() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const postal = document.getElementById('postalCode');
+    if (!validatePostalCode(postal)) { postal.focus(); return; }
+    const { error } = await db.from('businesses').update({
+      name: document.getElementById('bizName').value.trim(),
+      uen: document.getElementById('bizUen').value.trim(),
+      phone: document.getElementById('bizPhone').value.trim(),
+      address: document.getElementById('bizAddress').value.trim(),
+      postal_code: postal.value.trim(),
+    }).eq('id', currentBusiness.id);
+    if (error) { alert('Could not save: ' + error.message); return; }
+    alert('Business details saved.');
+    await loadCurrentBusiness();
+  }
+
+  async function saveInvoiceFooter() {
+    if (!currentBusiness) { alert('Your business profile has not loaded yet. Please refresh the page and try again.'); return; }
+    const { error } = await db.from('businesses').update({
+      invoice_footer: document.getElementById('bizFooter').value
+    }).eq('id', currentBusiness.id);
+    if (error) { alert('Could not save: ' + error.message); return; }
+    alert('Invoice footer saved.');
+  }
+
+  function validatePostalCode(input) {
+    const errorEl = document.getElementById('postalError');
+    const valid = /^\d{6}$/.test(input.value.trim());
+    errorEl.style.display = valid ? 'none' : 'block';
+    return valid;
+  }
+
+  // ============================================================
+  // NAVIGATION / UI HELPERS (unchanged behaviour, kept from prototype)
+  // ============================================================
+  function goTo(page) {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${page}`).classList.add('active');
+    const titles = { board: 'Jobs', technicians: 'Technicians', invoices: 'Invoices', customers: 'Customers', archive: 'Archive', settings: 'Settings' };
+    document.getElementById('topbarTitle').textContent = titles[page];
+  }
+
+  function openDrawer() {
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+
+  function closePanel() {
+    document.getElementById('jobPanel').classList.remove('open');
+    document.getElementById('panelOverlay').classList.remove('open');
+  }
+
+  function exportTableToExcel(tableId, filename) {
+    const table = document.getElementById(tableId);
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+    XLSX.writeFile(wb, filename);
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
 </script>
+
 </body>
 </html>
