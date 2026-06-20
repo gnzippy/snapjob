@@ -124,7 +124,13 @@ footer p{font-size:12px;color:var(--grey)}
 footer a{color:var(--grey);text-decoration:none}
 .fiu{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
 .fiu.vis{opacity:1;transform:none}
+.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start}
+.guide-mockup-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 @media(max-width:700px){.calc-row{grid-template-columns:1fr}.calc-result{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){
+  .guide-grid{grid-template-columns:1fr;gap:32px}
+  .guide-mockup-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -216,7 +222,7 @@ footer a{color:var(--grey);text-decoration:none}
 
 <!-- GET STARTED GUIDE -->
 <section id="guide">
-  <div class="inner" style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start">
+  <div class="inner guide-grid">
     <div>
       <div class="tag fiu">Get started</div>
       <div class="h2 fiu">Up and running<br>in 10 minutes</div>
@@ -239,7 +245,7 @@ footer a{color:var(--grey);text-decoration:none}
         </div>
         <div style="padding:16px">
           <div style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Job Board</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div class="guide-mockup-grid" style="margin-bottom:12px">
             <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:8px">
               <div style="font-size:9px;font-weight:700;color:var(--amber);text-transform:uppercase;margin-bottom:6px">New · 2</div>
               <div style="background:var(--navy2);border-radius:6px;padding:7px;margin-bottom:5px"><div style="font-size:10px;font-weight:600;margin-bottom:2px">David Tan</div><div style="font-size:9px;color:var(--grey)">Aircon leaking</div></div>
@@ -417,7 +423,7 @@ footer a{color:var(--grey);text-decoration:none}
 <footer>
   <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;margin-bottom:7px">Snap<span style="color:var(--blue)">Job</span></div>
   <p style="margin-bottom:5px">Job management for trade businesses in Southeast Asia.</p>
-  <p><a href="mailto:hello@snapjob.sg">hello@snapjob.sg</a></p>
+  <p><a href="mailto:ngzhiyish@gmail.com">ngzhiyish@gmail.com</a></p>
   <p style="margin-top:12px;font-size:11px">© 2026 SnapJob. Built in Singapore.</p>
 </footer>
 
